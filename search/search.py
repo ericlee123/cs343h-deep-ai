@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -87,12 +87,58 @@ def depthFirstSearch(problem):
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
     """
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    from game import Directions
+    stack = util.Stack()
+    stack.push(problem.getStartState())
+    back = {}
+    back[problem.getStartState()] = None
+    expanded = []
+
+    while not stack.isEmpty():
+        cur = stack.pop()
+        if cur in expanded:
+            continue
+        expanded.append(cur)
+        if problem.isGoalState(cur):
+            actions = []
+            while cur != problem.getStartState():
+                actions.append(back[cur][1])
+                cur = back[cur][0]
+            actions.reverse()
+            return actions
+        for child in problem.getSuccessors(cur):
+            if child[0] not in expanded:
+                stack.push(child[0])
+                back[child[0]] = (cur, child[1])
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    from game import Directions
+    start = problem.getStartState()
+    q = util.Queue()
+    q.push(start)
+    back = {}
+    back[start] = None
+
+    if problem.isGoalState(start):
+        return []
+
+    while not q.isEmpty():
+        cur = q.pop()
+        if problem.isGoalState(cur):
+            actions = []
+            while cur != problem.getStartState():
+                actions.append(back[cur][1])
+                cur = back[cur][0]
+            actions.reverse()
+            return actions
+        for child in problem.getSuccessors(cur):
+            if child[0] not in back:
+                q.push(child[0])
+                back[child[0]] = (cur, child[1])
+
+
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
