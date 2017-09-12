@@ -61,13 +61,13 @@ class SearchProblem:
         """
         util.raiseNotDefined()
 
+from game import Directions
 
 def tinyMazeSearch(problem):
     """
     Returns a sequence of moves that solves tinyMaze.  For any other maze, the
     sequence of moves will be incorrect, so only use this for tinyMaze.
     """
-    from game import Directions
     s = Directions.SOUTH
     w = Directions.WEST
     return  [s, s, w, s, w, w, s, w]
@@ -86,59 +86,57 @@ def depthFirstSearch(problem):
     print "Is the start a goal?", problem.isGoalState(problem.getStartState())
     print "Start's successors:", problem.getSuccessors(problem.getStartState())
     """
-    "*** YOUR CODE HERE ***"
-    from game import Directions
     stack = util.Stack()
     stack.push(problem.getStartState())
     back = {}
-    back[problem.getStartState()] = None
     expanded = []
 
     while not stack.isEmpty():
-        cur = stack.pop()
-        if cur in expanded:
+        current = stack.pop()
+        if current in expanded:
             continue
-        expanded.append(cur)
-        if problem.isGoalState(cur):
+
+        if problem.isGoalState(current):
             actions = []
-            while cur != problem.getStartState():
-                actions.append(back[cur][1])
-                cur = back[cur][0]
+            while current != problem.getStartState():
+                actions.append(back[current][1])
+                current = back[current][0]
             actions.reverse()
             return actions
-        for child in problem.getSuccessors(cur):
-            if child[0] not in expanded:
-                stack.push(child[0])
-                back[child[0]] = (cur, child[1])
+
+        expanded.append(current)
+        for child in problem.getSuccessors(current):
+            coords = child[0]
+            if coords not in expanded:
+                stack.push(coords)
+                back[coords] = (current, child[1])
 
 def breadthFirstSearch(problem):
     """Search the shallowest nodes in the search tree first."""
-    "*** YOUR CODE HERE ***"
-    from game import Directions
-    start = problem.getStartState()
     q = util.Queue()
-    q.push(start)
+    q.push(problem.getStartState())
     back = {}
-    back[start] = None
+    back[problem.getStartState()] = None
 
-    if problem.isGoalState(start):
+    if problem.isGoalState(problem.getStartState()):
         return []
 
     while not q.isEmpty():
-        cur = q.pop()
-        if problem.isGoalState(cur):
+        current = q.pop()
+
+        if problem.isGoalState(current):
             actions = []
-            while cur != problem.getStartState():
-                actions.append(back[cur][1])
-                cur = back[cur][0]
+            while current != problem.getStartState():
+                actions.append(back[current][1])
+                current = back[current][0]
             actions.reverse()
             return actions
-        for child in problem.getSuccessors(cur):
-            if child[0] not in back:
-                q.push(child[0])
-                back[child[0]] = (cur, child[1])
 
-
+        for child in problem.getSuccessors(current):
+            coords = child[0]
+            if coords not in back:
+                q.push(coords)
+                back[coords] = (current, child[1])
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
