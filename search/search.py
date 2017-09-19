@@ -93,8 +93,6 @@ def depthFirstSearch(problem):
 
     while not stack.isEmpty():
         current = stack.pop()
-        if current in expanded:
-            continue
 
         if problem.isGoalState(current):
             actions = []
@@ -134,14 +132,41 @@ def breadthFirstSearch(problem):
 
         for child in problem.getSuccessors(current):
             coords = child[0]
-            if coords not in back:
-                q.push(coords)
-                back[coords] = (current, child[1])
+            # if coords not in back:
+            q.push(coords)
+            back[coords] = (current, child[1])
 
 def uniformCostSearch(problem):
     """Search the node of least total cost first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    pq = util.PriorityQueue()
+    pq.update(problem.getStartState(), 0)
+    back = {}
+    back[problem.getStartState()] = (None, None, 0)
+    expanded = []
+
+    if problem.isGoalState(problem.getStartState()):
+        return []
+
+    while not pq.isEmpty():
+        current = pq.pop()
+        currentCost = back[current][2]
+
+        if problem.isGoalState(current):
+            actions = []
+            while current != problem.getStartState():
+                actions.append(back[current][1])
+                current = back[current][0]
+            actions.reverse()
+            return actions
+
+        expanded.append(current)
+        for child in problem.getSuccessors(current):
+            coords = child[0]
+            if coords not in expanded:
+                cost = currentCost + child[2]
+                if not (coords in back and cost > back[coords][2]):
+                    pq.update(coords, cost)
+                    back[coords] = (current, child[1], cost)
 
 def nullHeuristic(state, problem=None):
     """
@@ -152,8 +177,35 @@ def nullHeuristic(state, problem=None):
 
 def aStarSearch(problem, heuristic=nullHeuristic):
     """Search the node that has the lowest combined cost and heuristic first."""
-    "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    pq = util.PriorityQueue()
+    pq.update(problem.getStartState(), heuristic(problem.getStartState(), problem))
+    back = {}
+    back[problem.getStartState()] = (None, None, 0)
+    expanded = []
+
+    if problem.isGoalState(problem.getStartState()):
+        return []
+
+    while not pq.isEmpty():
+        current = pq.pop()
+        currentCost = back[current][2]
+
+        if problem.isGoalState(current):
+            actions = []
+            while current != problem.getStartState():
+                actions.append(back[current][1])
+                current = back[current][0]
+            actions.reverse()
+            return actions
+
+        expanded.append(current)
+        for child in problem.getSuccessors(current):
+            coords = child[0]
+            if coords not in expanded:
+                cost = currentCost + child[2]
+                if not (coords in back and cost > back[coords][2]):
+                    pq.update(coords, cost + heuristic(coords, problem))
+                    back[coords] = (current, child[1], cost)
 
 
 # Abbreviations
