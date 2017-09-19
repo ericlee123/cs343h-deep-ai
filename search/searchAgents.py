@@ -319,7 +319,7 @@ class CornersProblem(search.SearchProblem):
             dx, dy = Actions.directionToVector(action)
             nextx, nexty = int(x + dx), int(y + dy)
             hitsWall = self.walls[nextx][nexty]
-            nextc = tuple(food for food in c if food != (x, y)) # if current coords is a corner, update state
+            nextc = tuple(food for food in c if food != (nextx, nexty)) # if current coords is a corner, update state
             if not hitsWall:
                 successors.append(((nextx, nexty, nextc), action, self.getCostOfActions([action])))
 
