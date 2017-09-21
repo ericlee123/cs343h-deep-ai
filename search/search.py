@@ -203,7 +203,6 @@ def aStarSearch(problem, heuristic=nullHeuristic):
                     pq.update(state, childCost + heuristic(state, problem))
                     back[state] = (current, child[1], childCost)
 
-
 # Abbreviations
 bfs = breadthFirstSearch
 dfs = depthFirstSearch
