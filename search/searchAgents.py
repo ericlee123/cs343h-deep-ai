@@ -486,13 +486,17 @@ def foodHeuristic(state, problem):
         return 0
 
     curPos = newPos
-    maxDist = -1
+    maxX = -1
+    maxY = -1
     for c in foodLeft:
-        manDist = abs(c[0] - curPos[0]) + abs(c[1] - curPos[1])
-        if manDist >= maxDist:
-            maxDist = manDist
+        X = abs(c[0] - curPos[0])
+        Y = abs(c[1] - curPos[1])
+        if X >= maxX:
+            maxX = X
+        if Y >= maxY:
+            maxY = Y
 
-    return minDist + maxDist
+    return minDist + maxX + maxY
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
