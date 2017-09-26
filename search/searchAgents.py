@@ -510,23 +510,30 @@ def foodHeuristic(state, problem):
         minY = min(minY, food[1])
 
     curPos = position
-    heur = 0
+    heur2 = 0
 
     if curPos[0] < minX:
-        heur += maxX - curPos[0]
+        heur2 += maxX - curPos[0]
     elif curPos[0] < maxX:
-        heur += maxX - minX + min(maxX - curPos[0], curPos[0] - minX)
+        heur2 += maxX - minX + min(maxX - curPos[0], curPos[0] - minX)
     else:
-        heur += curPos[0] - minX
+        heur2 += curPos[0] - minX
 
     if curPos[1] < minY:
-        heur += maxY - curPos[1]
+        heur2 += maxY - curPos[1]
     elif curPos[1] < maxY:
-        heur += maxY - minY + min(maxY - curPos[1], curPos[1] - minY)
+        heur2 += maxY - minY + min(maxY - curPos[1], curPos[1] - minY)
     else:
-        heur += curPos[1] - minY
+        heur2 += curPos[1] - minY
 
-    return max(heur, heur1)
+    heur3 = -1
+    for i in foodLeft:
+        for j in foodLeft:
+            dist = abs(i[0] - j[0]) + abs(i[1] - j[1])
+            dist += min(abs(i[0] - curPos[0]) + abs(i[1] - curPos[1]), abs(j[0] - curPos[0]) + abs(j[1] - curPos[1]))
+            heur3 = max(heur3, dist)
+
+    return heur3 #max(heur1, heur2, heur3)
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
