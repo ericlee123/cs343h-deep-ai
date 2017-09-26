@@ -473,6 +473,9 @@ def foodHeuristic(state, problem):
             if foodGrid[i][j]:
                 foodLeft.append((i, j))
 
+    if len(foodLeft) == 0:
+        return 0
+
     curPos = position
     heur = 0
 
@@ -482,8 +485,6 @@ def foodHeuristic(state, problem):
         if manDist <= minDist:
             minDist = manDist
             newPos = c
-    if minDist == foodGrid.height + foodGrid.width + 10:
-        return 0
 
     curPos = newPos
     maxX = -1
@@ -496,7 +497,36 @@ def foodHeuristic(state, problem):
         if Y >= maxY:
             maxY = Y
 
-    return minDist + maxX + maxY
+    heur1 = minDist + maxX + maxY
+
+    maxX = -1
+    maxY = -1
+    minX = foodGrid.height + foodGrid.width + 1
+    minY = foodGrid.height + foodGrid.width + 1
+    for food in foodLeft:
+        maxX = max(maxX, food[0])
+        maxY = max(maxY, food[1])
+        minX = min(minX, food[0])
+        minY = min(minY, food[1])
+
+    curPos = position
+    heur = 0
+
+    if curPos[0] < minX:
+        heur += maxX - curPos[0]
+    elif curPos[0] < maxX:
+        heur += maxX - minX + min(maxX - curPos[0], curPos[0] - minX)
+    else:
+        heur += curPos[0] - minX
+
+    if curPos[1] < minY:
+        heur += maxY - curPos[1]
+    elif curPos[1] < maxY:
+        heur += maxY - minY + min(maxY - curPos[1], curPos[1] - minY)
+    else:
+        heur += curPos[1] - minY
+
+    return max(heur, heur1)
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
