@@ -299,7 +299,7 @@ class CornersProblem(search.SearchProblem):
         """
         Returns whether this search state is a goal state of the problem.
         """
-        return not state[2]
+        return len(state[2]) == 0
 
     def getSuccessors(self, state):
         """
@@ -319,9 +319,13 @@ class CornersProblem(search.SearchProblem):
             dx, dy = Actions.directionToVector(action)
             nextx, nexty = int(x + dx), int(y + dy)
             hitsWall = self.walls[nextx][nexty]
-            nextc = tuple(food for food in c if food != (nextx, nexty)) # if current coords is a corner, update state
             if not hitsWall:
-                successors.append(((nextx, nexty, nextc), action, self.getCostOfActions([action])))
+                nextc = []
+                for corner in c:
+                    if corner != (nextx, nexty):
+                        nextc.append(corner)
+                nextc = tuple(nextc)
+                successors.append(((nextx, nexty, nextc), action, 1))
 
         self._expanded += 1 # DO NOT CHANGE
         return successors
@@ -359,10 +363,11 @@ def cornersHeuristic(state, problem):
 
     curPos = (state[0], state[1])
     cornersLeft = list(state[2])
+
     heur = 0
 
     while cornersLeft:
-        minDist = walls.height - 2 + walls.width - 2
+        minDist = walls.height + walls.width + 1
         newPos = None
         for c in cornersLeft:
             manDist = abs(c[0] - curPos[0]) + abs(c[1] - curPos[1])
@@ -476,64 +481,16 @@ def foodHeuristic(state, problem):
     if len(foodLeft) == 0:
         return 0
 
-    curPos = position
-    heur = 0
-
-    minDist = foodGrid.height + foodGrid.width + 10
-    for c in foodLeft:
-        manDist = abs(c[0] - curPos[0]) + abs(c[1] - curPos[1])
-        if manDist <= minDist:
-            minDist = manDist
-            newPos = c
-
-    curPos = newPos
-    maxX = -1
-    maxY = -1
-    for c in foodLeft:
-        X = abs(c[0] - curPos[0])
-        Y = abs(c[1] - curPos[1])
-        if X >= maxX:
-            maxX = X
-        if Y >= maxY:
-            maxY = Y
-
-    heur1 = minDist + maxX + maxY
-
-    maxX = -1
-    maxY = -1
-    minX = foodGrid.height + foodGrid.width + 1
-    minY = foodGrid.height + foodGrid.width + 1
-    for food in foodLeft:
-        maxX = max(maxX, food[0])
-        maxY = max(maxY, food[1])
-        minX = min(minX, food[0])
-        minY = min(minY, food[1])
-
-    curPos = position
-    heur2 = 0
-
-    if curPos[0] < minX:
-        heur2 += maxX - curPos[0]
-    elif curPos[0] < maxX:
-        heur2 += maxX - minX + min(maxX - curPos[0], curPos[0] - minX)
-    else:
-        heur2 += curPos[0] - minX
-
-    if curPos[1] < minY:
-        heur2 += maxY - curPos[1]
-    elif curPos[1] < maxY:
-        heur2 += maxY - minY + min(maxY - curPos[1], curPos[1] - minY)
-    else:
-        heur2 += curPos[1] - minY
-
     heur3 = -1
+    curPos = position
     for i in foodLeft:
         for j in foodLeft:
             dist = abs(i[0] - j[0]) + abs(i[1] - j[1])
             dist += min(abs(i[0] - curPos[0]) + abs(i[1] - curPos[1]), abs(j[0] - curPos[0]) + abs(j[1] - curPos[1]))
+            #dist += min(mazeDistance(i, curPos, problem.startingGameState), mazeDistance(curPos, j, problem.startingGameState))
             heur3 = max(heur3, dist)
 
-    return heur3 #max(heur1, heur2, heur3)
+    return heur3
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"
