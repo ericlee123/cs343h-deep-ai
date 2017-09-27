@@ -320,6 +320,7 @@ class CornersProblem(search.SearchProblem):
             nextx, nexty = int(x + dx), int(y + dy)
             hitsWall = self.walls[nextx][nexty]
             if not hitsWall:
+                # update corners that have not been visited
                 nextc = []
                 for corner in c:
                     if corner != (nextx, nexty):
@@ -358,23 +359,25 @@ def cornersHeuristic(state, problem):
     admissible (as well as consistent).
     """
 
-    corners = problem.corners # These are the corner coordinates
-    walls = problem.walls # These are the walls of the maze, as a Grid (game.py)
+    walls = problem.walls
 
     curPos = (state[0], state[1])
     cornersLeft = list(state[2])
 
     heur = 0
 
+    # while corners have not been visited
     while cornersLeft:
         minDist = walls.height + walls.width + 1
         newPos = None
+        # find the closest corner
         for c in cornersLeft:
             manDist = abs(c[0] - curPos[0]) + abs(c[1] - curPos[1])
             if manDist <= minDist:
                 minDist = manDist
                 newPos = c
         heur += minDist
+        # update position to the closest corner position
         curPos = newPos
         cornersLeft.remove(newPos)
 
@@ -481,16 +484,17 @@ def foodHeuristic(state, problem):
     if len(foodLeft) == 0:
         return 0
 
-    heur3 = -1
+    heur = -1
     curPos = position
     for i in foodLeft:
         for j in foodLeft:
+            # cost to collect two food pellets
             dist = abs(i[0] - j[0]) + abs(i[1] - j[1])
-            dist += min(abs(i[0] - curPos[0]) + abs(i[1] - curPos[1]), abs(j[0] - curPos[0]) + abs(j[1] - curPos[1]))
-            #dist += min(mazeDistance(i, curPos, problem.startingGameState), mazeDistance(curPos, j, problem.startingGameState))
-            heur3 = max(heur3, dist)
+            dist += min(abs(i[0] - curPos[0]) + abs(i[1] - curPos[1]), \
+                abs(j[0] - curPos[0]) + abs(j[1] - curPos[1]))
+            heur = max(heur, dist)
 
-    return heur3
+    return heur
 
 class ClosestDotSearchAgent(SearchAgent):
     "Search for all food using a sequence of searches"

@@ -1,0 +1,17 @@
+NAME:   Eric Lee
+UTEID:  ejl966
+
+NAME:   Guneet Singh Dhillon
+UTEID:  gsd352
+
+DESCRIPTION:
+Each of the different search algorithms were straight-forward to implement and
+test. The challenging part was to come up with the heuristics for the "Corners
+Problem" and "Food Search Problem". For the heuristic for the "Corners
+Problem", we simplify it to a problem without walls, which would underestimate
+the cost in the original problem. So we came up with an algorithm that returned
+the actual cost in the simplified problem, and used that as a heuristic. For the
+heursitic for the "Food Search Problem", we simplify it to a problem with only
+2 food pellets and without walls. So we look at the manhattan distance to
+collect each pair of food pellets, and return the maximum of that as the
+heursitic. This also underestimates the actual cost of the original problem.
