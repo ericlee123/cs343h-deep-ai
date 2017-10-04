@@ -74,18 +74,23 @@ class ReflexAgent(Agent):
         newScaredTimes = [ghostState.scaredTimer for ghostState in newGhostStates]
         eval = 0
 
+        # only care about nearby ghosts
         ghostThreat = manhattanDistance(newPos, newGhostStates[0].getPosition())
         if ghostThreat < 5:
-            eval += ghostThreat ** 2
+            eval -= (5 - ghostThreat) ** 5
 
-        foodLeft = 0
-        for i in newFood:
-            for j in i:
-                if j:
-                    foodLeft += 1
-
+        # incentivize eating food
         maxFood = newFood.height * newFood.width
         eval += (maxFood - newFood.count()) ** 2
+
+        # get closer to food
+        minFoodDist = newFood.height + newFood.width
+        for x in range(newFood.width):
+            for y in range(newFood.height):
+                if newFood[x][y]:
+                    foodDist = manhattanDistance(newPos, (x, y))
+                    minFoodDist = min(minFoodDist, foodDist)
+        eval -= minFoodDist
 
         return eval
 
