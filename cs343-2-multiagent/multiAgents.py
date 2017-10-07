@@ -149,6 +149,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
         maxi = -float('inf')
         best = None
         actions = gameState.getLegalActions(0)
+        # seperate the root node from the recursion because we need to return the best action
         for a in actions:
             temp = self.recurse(1, gameState.generateSuccessor(0, a))
             if temp > maxi:
@@ -158,15 +159,16 @@ class MinimaxAgent(MultiAgentSearchAgent):
 
     def recurse(self, level, state):
         index = level % state.getNumAgents()
+        # if depth is reached or legal actions available, evaluate the state
         if level == self.depth * state.getNumAgents() or len(state.getLegalActions(index)) == 0:
             return self.evaluationFunction(state)
-        if index == 0: # pacman
+        if index == 0: # pacman (max)
             actions = state.getLegalActions(index)
             maxi = -float('inf')
             for a in actions:
                 maxi = max(maxi, self.recurse(level + 1, state.generateSuccessor(index, a)))
             return maxi
-        else: # ghost
+        else: # ghost (min)
             actions = state.getLegalActions(index)
             mini = float('inf')
             for a in actions:
@@ -187,6 +189,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         maxi = -float('inf')
         best = None
         actions = gameState.getLegalActions(0)
+        # same algorithm as minimax except we pass alpha and beta
         for a in actions:
             temp = self.recurse(1, gameState.generateSuccessor(0, a), alpha, beta)
             if temp > maxi:
@@ -201,21 +204,21 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         index = level % state.getNumAgents()
         if level == self.depth * state.getNumAgents() or len(state.getLegalActions(index)) == 0:
             return self.evaluationFunction(state)
-        if index == 0: # pacman
+        if index == 0: # pacman (max)
             actions = state.getLegalActions(index)
             maxi = -float('inf')
             for a in actions:
                 maxi = max(maxi, self.recurse(level + 1, state.generateSuccessor(index, a), alpha, beta))
-                if maxi > beta:
+                if maxi > beta: # if we find eval greater than beta, then prune rest of the branches
                     return maxi
                 alpha = max(alpha, maxi)
             return maxi
-        else: # ghost
+        else: # ghost (min)
             actions = state.getLegalActions(index)
             mini = float('inf')
             for a in actions:
                 mini = min(mini, self.recurse(level + 1, state.generateSuccessor(index, a), alpha, beta))
-                if mini < alpha:
+                if mini < alpha: # if we find eval less than alpha, then prune rest of branches
                     return mini
                 beta = min(beta, mini)
             return mini
@@ -257,7 +260,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
             mini = 0
             for a in actions:
                 mini += self.recurse(level + 1, state.generateSuccessor(index, a))
-            return mini/len(actions)
+            return mini/len(actions) # instead of returning the minimum, return the average eval
 
 
 def betterEvaluationFunction(currentGameState):
@@ -268,6 +271,7 @@ def betterEvaluationFunction(currentGameState):
       DESCRIPTION: <write something here so we know what you did>
     """
 
+    # EVALUATION IDEAS:
     # incentivize power pellets when ghosts are nearby
     # stay a safe distance away from ghosts
     # eat food
@@ -288,9 +292,9 @@ def betterEvaluationFunction(currentGameState):
 
     # want to get loser to ghost if it is scared
     scaredTime = newScaredTimes[0]
-    if scaredTime > 0:
+    if scaredTime > 0: # if the ghost is scared, ignore the ghostThreat
         eval = 0
-    if ghostThreat < scaredTime:
+    if ghostThreat < scaredTime: # if pacman can reach the ghost within the scaredTime, go eat him
         eval += (scaredTime - ghostThreat) ** 3
 
     # incentivize eating food

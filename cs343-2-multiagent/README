@@ -1,0 +1,19 @@
+NAME:   Eric Lee
+UTEID:  ejl966
+
+NAME:   Guneet Singh Dhillon
+UTEID:  gsd352
+
+DESCRIPTION:
+This assignment can be viewed in two parts: an evaluation function and minimax.
+We began with a simple evaluation function that would incentivize Pacman to
+perform actions to maximize his score, actions like eating food and avoiding
+ghosts. To make our function better for question 5, we also considered whether
+or not the ghosts were scared and if Pacman was within range of the scared
+ghosts.
+For the minimax part, we began with a vanilla implementation of minimax with one
+maximizer and n minimizers. For alpha-beta pruning, we copied over the same
+algorithm and recursively passed around alpha and beta values, so nodes would
+know when to stop recursively calling their children. For expectimax, we made a
+small modification where minimizers returned the average of their evaluated
+children instead of the minimum.
