@@ -286,6 +286,13 @@ def betterEvaluationFunction(currentGameState):
     if ghostThreat < 5:
         eval -= (5 - ghostThreat) ** 5
 
+    # want to get loser to ghost if it is scared
+    scaredTime = newScaredTimes[0]
+    if scaredTime > 0:
+        eval = 0
+    if ghostThreat < scaredTime:
+        eval += (scaredTime - ghostThreat) ** 3
+
     # incentivize eating food
     maxFood = newFood.height * newFood.width
     eval += (maxFood - newFood.count()) ** 2
