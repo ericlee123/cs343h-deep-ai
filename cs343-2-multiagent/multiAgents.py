@@ -177,13 +177,48 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
     """
       Your minimax agent with alpha-beta pruning (question 3)
     """
-
     def getAction(self, gameState):
         """
           Returns the minimax action using self.depth and self.evaluationFunction
         """
-        "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        alpha = -999999999
+        beta = 999999999
+
+        maxi = -999999999
+        best = None
+        actions = gameState.getLegalActions(0)
+        for a in actions:
+            temp = self.recurse(1, gameState.generateSuccessor(0, a), alpha, beta)
+            if temp > maxi:
+                maxi = temp
+                best = a
+            if maxi > beta:
+                break
+            alpha = max(alpha, maxi)
+        return best
+
+    def recurse(self, level, state, alpha, beta):
+        index = level % state.getNumAgents()
+        if level == self.depth * state.getNumAgents() or len(state.getLegalActions(index)) == 0:
+            return self.evaluationFunction(state)
+        if index == 0: # pacman
+            actions = state.getLegalActions(index)
+            maxi = -999999999
+            for a in actions:
+                maxi = max(maxi, self.recurse(level + 1, state.generateSuccessor(index, a), alpha, beta))
+                if maxi > beta:
+                    return maxi
+                alpha = max(alpha, maxi)
+            return maxi
+        else: # ghost
+            actions = state.getLegalActions(index)
+            mini = 999999999
+            for a in actions:
+                mini = min(mini, self.recurse(level + 1, state.generateSuccessor(index, a), alpha, beta))
+                if mini < alpha:
+                    return mini
+                beta = min(beta, mini)
+            return mini
 
 class ExpectimaxAgent(MultiAgentSearchAgent):
     """
@@ -198,7 +233,7 @@ class ExpectimaxAgent(MultiAgentSearchAgent):
           legal moves.
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
 
 def betterEvaluationFunction(currentGameState):
     """
