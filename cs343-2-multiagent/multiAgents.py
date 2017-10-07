@@ -146,7 +146,7 @@ class MinimaxAgent(MultiAgentSearchAgent):
           gameState.getNumAgents():
             Returns the total number of agents in the game
         """
-        maxi = -999999999
+        maxi = -float('inf')
         best = None
         actions = gameState.getLegalActions(0)
         for a in actions:
@@ -162,13 +162,13 @@ class MinimaxAgent(MultiAgentSearchAgent):
             return self.evaluationFunction(state)
         if index == 0: # pacman
             actions = state.getLegalActions(index)
-            maxi = -999999999
+            maxi = -float('inf')
             for a in actions:
                 maxi = max(maxi, self.recurse(level + 1, state.generateSuccessor(index, a)))
             return maxi
         else: # ghost
             actions = state.getLegalActions(index)
-            mini = 999999999
+            mini = float('inf')
             for a in actions:
                 mini = min(mini, self.recurse(level + 1, state.generateSuccessor(index, a)))
             return mini
@@ -181,10 +181,10 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
         """
           Returns the minimax action using self.depth and self.evaluationFunction
         """
-        alpha = -999999999
-        beta = 999999999
+        alpha = -float('inf')
+        beta = float('inf')
 
-        maxi = -999999999
+        maxi = -float('inf')
         best = None
         actions = gameState.getLegalActions(0)
         for a in actions:
@@ -203,7 +203,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             return self.evaluationFunction(state)
         if index == 0: # pacman
             actions = state.getLegalActions(index)
-            maxi = -999999999
+            maxi = -float('inf')
             for a in actions:
                 maxi = max(maxi, self.recurse(level + 1, state.generateSuccessor(index, a), alpha, beta))
                 if maxi > beta:
@@ -212,7 +212,7 @@ class AlphaBetaAgent(MultiAgentSearchAgent):
             return maxi
         else: # ghost
             actions = state.getLegalActions(index)
-            mini = 999999999
+            mini = float('inf')
             for a in actions:
                 mini = min(mini, self.recurse(level + 1, state.generateSuccessor(index, a), alpha, beta))
                 if mini < alpha:
