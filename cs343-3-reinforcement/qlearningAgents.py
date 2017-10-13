@@ -65,12 +65,12 @@ class QLearningAgent(ReinforcementAgent):
         """
         "*** YOUR CODE HERE ***"
         maximum = -float('inf')
-        if state not in self.qValues:
-            return 0.0
-        for action in self.qValues[state]:
-            q = self.qValues[state][action]
+        for action in self.getLegalActions(state):
+            q = self.getQValue(state, action)
             if maximum < q:
                 maximum = q
+        if maximum == -float('inf'):
+            return 0.0
         return maximum
 
     def computeActionFromQValues(self, state):
@@ -82,10 +82,8 @@ class QLearningAgent(ReinforcementAgent):
         "*** YOUR CODE HERE ***"
         maximum = -float('inf')
         maxAction = None
-        if state not in self.qValues:
-            return None
-        for action in self.qValues[state]:
-            q = self.qValues[state][action]
+        for action in self.getLegalActions(state):
+            q = self.getQValue(state, action)
             if maximum < q:
                 maximum = q
                 maxAction = action
@@ -125,8 +123,9 @@ class QLearningAgent(ReinforcementAgent):
             self.qValues[state] = {}
         if action not in self.qValues[state]:
             self.qValues[state][action] = 0.0
-        self.qValues[state][action] = ((1.0 - self.alpha) * self.qValues[state][action]) \
-            + (self.alpha * (reward + self.discount * (self.computeValueFromQValues(nextState))))
+        self.qValues[state][action] = \
+            ((1.0 - self.alpha) * self.qValues[state][action]) \
+            + (self.alpha * (reward + (self.discount * (self.computeValueFromQValues(nextState)))))
 
     def getPolicy(self, state):
         return self.computeActionFromQValues(state)
@@ -189,14 +188,26 @@ class ApproximateQAgent(PacmanQAgent):
           where * is the dotProduct operator
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        weights = self.weights
+        features = self.featExtractor.getFeatures(state, action)
+        ans = 0.0
+        for i in features:
+            ans += (weights[i] * features[i])
+        return ans
 
     def update(self, state, action, nextState, reward):
         """
            Should update your weights based on transition
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        import copy
+
+        weights = copy.deepcopy(self.weights)
+        features = self.featExtractor.getFeatures(state, action)
+        for i in features:
+            weights[i] += \
+                (self.alpha * features[i] * (reward + (self.discount * (self.computeValueFromQValues(nextState))) - self.getQValue(state, action)))
+        self.weights = weights
 
     def final(self, state):
         "Called at the end of each game."

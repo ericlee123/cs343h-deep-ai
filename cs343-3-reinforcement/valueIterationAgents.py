@@ -45,15 +45,11 @@ class ValueIterationAgent(ValueEstimationAgent):
 
         # Write value iteration code here
         "*** YOUR CODE HERE ***"
-
-        for state in self.mdp.getStates():
-            self.values[state] = 0
-
         import copy
 
         for i in range(iterations):
             newvals = copy.deepcopy(self.values)
-            for s in newvals:
+            for s in self.mdp.getStates():
                 maximum = -float('inf')
                 for action in self.mdp.getPossibleActions(s):
                     value = self.computeQValueFromValues(s, action)
