@@ -1,0 +1,39 @@
+NAME:   Eric Lee
+UTEID:  ejl966
+
+NAME:   Guneet Singh Dhillon
+UTEID:  gsd352
+
+DESCRIPTION:
+
+For question 1, we implemented the building blocks for value iteration and then
+ran the actual value iteration in the constructor. Implementation was pretty
+simple, as our methods were straightforward translations from their equations in
+the book.
+
+For question 2, we wanted the agent to cross the bridge optimally within a small
+amount of iterations. From our intuition, we set the noise value to be 0.0, so
+the agent would go for the bigger reward of +10, and would risk the cliff (as it
+would not fall).
+
+For question 3, if we wanted to risk the cliff, we would put noise value of 0,
+nonzero otherwise. If we wanted the agent to go to the +1 exit, we would
+decrease the discount value, so that the agent would value imminent rewards far
+more than future ones. Lastly, if we didn't want the agent to do anything, we
+would set the living reward to be positive, so the agent would want to live.
+
+For question 4, we implemented straightforward Q-learning. The basis is that the
+agent takes an action, and then updates its action values based on the results.
+
+For question 5, we simply modified getAction() to return a random action based
+on the provided epsilon; otherwise, it would return the optimal action.
+
+For question 6, the consequences of falling off of the cliff are too large
+relative to the small +10 at the end of the bridge. Thus, 50 episodes is not
+enough to learn the optimal policy, as any "progress" towards the optimal policy
+could easily be negated by falling off of the cliff.
+
+For question 7, it was magically already completed.
+
+For question 8, we just implemented the equations provided on the website. It
+was very similar to Q-learning.

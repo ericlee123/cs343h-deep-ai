@@ -41,8 +41,9 @@ class QLearningAgent(ReinforcementAgent):
     def __init__(self, **args):
         "You can initialize Q-values here..."
         ReinforcementAgent.__init__(self, **args)
-        "*** YOUR CODE HERE ***"
-        self.qValues = {} # state -> action -> q value
+
+        # state -> action -> q-value
+        self.qValues = {}
 
     def getQValue(self, state, action):
         """
@@ -50,7 +51,6 @@ class QLearningAgent(ReinforcementAgent):
           Should return 0.0 if we have never seen a state
           or the Q node value otherwise
         """
-        "*** YOUR CODE HERE ***"
         if state in self.qValues:
             if action in self.qValues[state]:
                 return self.qValues[state][action]
@@ -63,7 +63,7 @@ class QLearningAgent(ReinforcementAgent):
           there are no legal actions, which is the case at the
           terminal state, you should return a value of 0.0.
         """
-        "*** YOUR CODE HERE ***"
+        # compute maximum q-value
         maximum = -float('inf')
         for action in self.getLegalActions(state):
             q = self.getQValue(state, action)
@@ -79,7 +79,7 @@ class QLearningAgent(ReinforcementAgent):
           are no legal actions, which is the case at the terminal state,
           you should return None.
         """
-        "*** YOUR CODE HERE ***"
+        # compute action that gives maximum q-value
         maximum = -float('inf')
         maxAction = None
         for action in self.getLegalActions(state):
@@ -100,8 +100,7 @@ class QLearningAgent(ReinforcementAgent):
           HINT: You might want to use util.flipCoin(prob)
           HINT: To pick randomly from a list, use random.choice(list)
         """
-        "*** YOUR CODE HERE ***"
-        # Pick Action
+        # pick action - random or greedy
         legalActions = self.getLegalActions(state)
         if len(legalActions) == 0:
             return None
@@ -118,7 +117,6 @@ class QLearningAgent(ReinforcementAgent):
           NOTE: You should never call this function,
           it will be called on your behalf
         """
-        "*** YOUR CODE HERE ***"
         if state not in self.qValues:
             self.qValues[state] = {}
         if action not in self.qValues[state]:
@@ -187,7 +185,6 @@ class ApproximateQAgent(PacmanQAgent):
           Should return Q(state,action) = w * featureVector
           where * is the dotProduct operator
         """
-        "*** YOUR CODE HERE ***"
         weights = self.weights
         features = self.featExtractor.getFeatures(state, action)
         ans = 0.0
@@ -199,7 +196,6 @@ class ApproximateQAgent(PacmanQAgent):
         """
            Should update your weights based on transition
         """
-        "*** YOUR CODE HERE ***"
         import copy
 
         weights = copy.deepcopy(self.weights)
@@ -217,5 +213,4 @@ class ApproximateQAgent(PacmanQAgent):
         # did we finish training?
         if self.episodesSoFar == self.numTraining:
             # you might want to print your weights here for debugging
-            "*** YOUR CODE HERE ***"
             pass

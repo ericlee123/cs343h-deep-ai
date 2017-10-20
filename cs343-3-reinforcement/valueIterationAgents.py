@@ -43,12 +43,13 @@ class ValueIterationAgent(ValueEstimationAgent):
         self.iterations = iterations
         self.values = util.Counter() # A Counter is a dict with default 0
 
-        # Write value iteration code here
-        "*** YOUR CODE HERE ***"
         import copy
 
+        # value iteration performed here
         for i in range(iterations):
+            # copy old values
             newvals = copy.deepcopy(self.values)
+            # iterate through all states and find max q-value
             for s in self.mdp.getStates():
                 maximum = -float('inf')
                 for action in self.mdp.getPossibleActions(s):
@@ -56,6 +57,7 @@ class ValueIterationAgent(ValueEstimationAgent):
                     maximum = max(value, maximum)
                 if maximum != -float('inf'):
                     newvals[s] = maximum
+            # update all values
             self.values = newvals
 
     def getValue(self, state):
@@ -70,7 +72,6 @@ class ValueIterationAgent(ValueEstimationAgent):
           Compute the Q-value of action in state from the
           value function stored in self.values.
         """
-        "*** YOUR CODE HERE ***"
         ans = 0
         for i in self.mdp.getTransitionStatesAndProbs(state, action):
             s,p = i
@@ -86,7 +87,7 @@ class ValueIterationAgent(ValueEstimationAgent):
           there are no legal actions, which is the case at the
           terminal state, you should return None.
         """
-        "*** YOUR CODE HERE ***"
+        # compute action with maximum q-value
         maximum = -float('inf')
         maxAction = None
         for action in self.mdp.getPossibleActions(state):
