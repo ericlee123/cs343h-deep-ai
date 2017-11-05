@@ -109,6 +109,14 @@ def constructBayesNet(gameState):
             for obs in obsVars:
                 edges.append((house, obs))
 
+    # get the domains for the vaiables
+    variableDomainsDict[X_POS_VAR] = X_POS_VALS
+    variableDomainsDict[Y_POS_VAR] = Y_POS_VALS
+    for house in HOUSE_VARS:
+        variableDomainsDict[house] = HOUSE_VALS
+    for obs in obsVars:
+        variableDomainsDict[obs] = OBS_VALS
+
     variables = [X_POS_VAR, Y_POS_VAR] + HOUSE_VARS + obsVars
     net = bn.constructEmptyBayesNet(variables, edges, variableDomainsDict)
     return net, obsVars
@@ -138,7 +146,12 @@ def fillYCPT(bayesNet, gameState):
 
     yFactor = bn.Factor([Y_POS_VAR], [], bayesNet.variableDomainsDict())
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    # set the probabilities for different values of Y
+    yFactor.setProbability({Y_POS_VAR: BOTH_TOP_VAL}, PROB_BOTH_TOP)
+    yFactor.setProbability({Y_POS_VAR: BOTH_BOTTOM_VAL}, PROB_BOTH_BOTTOM)
+    yFactor.setProbability({Y_POS_VAR: LEFT_TOP_VAL}, PROB_ONLY_LEFT_TOP)
+    yFactor.setProbability({Y_POS_VAR: LEFT_BOTTOM_VAL}, PROB_ONLY_LEFT_BOTTOM)
     bayesNet.setCPT(Y_POS_VAR, yFactor)
 
 def fillHouseCPT(bayesNet, gameState):
@@ -203,7 +216,97 @@ def fillObsCPT(bayesNet, gameState):
     bottomLeftPos, topLeftPos, bottomRightPos, topRightPos = gameState.getPossibleHouses()
 
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    # get all observation variables
+    for house in gameState.getPossibleHouses():
+        for obs in gameState.getHouseWalls(house):
+            var = OBS_VAR_TEMPLATE % obs
+            factor = bn.Factor([var], HOUSE_VARS, bayesNet.variableDomainsDict())
+            # for each different assignment, set probability looking at values
+            # of the variables in the assignment
+            for assignment in factor.getAllPossibleAssignmentDicts():
+                if house == bottomLeftPos:
+                    if assignment[FOOD_HOUSE_VAR] == BOTTOM_LEFT_VAL:
+                        if assignment[var] == BLUE_OBS_VAL:
+                            p = 1 - PROB_FOOD_RED
+                        elif assignment[var] == RED_OBS_VAL:
+                            p = PROB_FOOD_RED
+                        else:
+                            p = 0
+                    elif assignment[GHOST_HOUSE_VAR] == BOTTOM_LEFT_VAL:
+                        if assignment[var] == BLUE_OBS_VAL:
+                            p = 1 - PROB_GHOST_RED
+                        elif assignment[var] == RED_OBS_VAL:
+                            p = PROB_GHOST_RED
+                        else:
+                            p = 0
+                    else:
+                        if assignment[var] == NO_OBS_VAL:
+                            p = 1
+                        else:
+                            p = 0
+                elif house == topLeftPos:
+                    if assignment[FOOD_HOUSE_VAR] == TOP_LEFT_VAL:
+                        if assignment[var] == BLUE_OBS_VAL:
+                            p = 1 - PROB_FOOD_RED
+                        elif assignment[var] == RED_OBS_VAL:
+                            p = PROB_FOOD_RED
+                        else:
+                            p = 0
+                    elif assignment[GHOST_HOUSE_VAR] == TOP_LEFT_VAL:
+                        if assignment[var] == BLUE_OBS_VAL:
+                            p = 1 - PROB_GHOST_RED
+                        elif assignment[var] == RED_OBS_VAL:
+                            p = PROB_GHOST_RED
+                        else:
+                            p = 0
+                    else:
+                        if assignment[var] == NO_OBS_VAL:
+                            p = 1
+                        else:
+                            p = 0
+                elif house == bottomRightPos:
+                    if assignment[FOOD_HOUSE_VAR] == BOTTOM_RIGHT_VAL:
+                        if assignment[var] == BLUE_OBS_VAL:
+                            p = 1 - PROB_FOOD_RED
+                        elif assignment[var] == RED_OBS_VAL:
+                            p = PROB_FOOD_RED
+                        else:
+                            p = 0
+                    elif assignment[GHOST_HOUSE_VAR] == BOTTOM_RIGHT_VAL:
+                        if assignment[var] == BLUE_OBS_VAL:
+                            p = 1 - PROB_GHOST_RED
+                        elif assignment[var] == RED_OBS_VAL:
+                            p = PROB_GHOST_RED
+                        else:
+                            p = 0
+                    else:
+                        if assignment[var] == NO_OBS_VAL:
+                            p = 1
+                        else:
+                            p = 0
+                else:
+                    if assignment[FOOD_HOUSE_VAR] == TOP_RIGHT_VAL:
+                        if assignment[var] == BLUE_OBS_VAL:
+                            p = 1 - PROB_FOOD_RED
+                        elif assignment[var] == RED_OBS_VAL:
+                            p = PROB_FOOD_RED
+                        else:
+                            p = 0
+                    elif assignment[GHOST_HOUSE_VAR] == TOP_RIGHT_VAL:
+                        if assignment[var] == BLUE_OBS_VAL:
+                            p = 1 - PROB_GHOST_RED
+                        elif assignment[var] == RED_OBS_VAL:
+                            p = PROB_GHOST_RED
+                        else:
+                            p = 0
+                    else:
+                        if assignment[var] == NO_OBS_VAL:
+                            p = 1
+                        else:
+                            p = 0
+                factor.setProbability(assignment, p)
+            bayesNet.setCPT(var, factor)
 
 def getMostLikelyFoodHousePosition(evidence, bayesNet, eliminationOrder):
     """
