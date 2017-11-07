@@ -101,7 +101,41 @@ def joinFactors(factors):
 
 
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    # get unconditioned variables
+    unconditioned = []
+    for factor in factors:
+        unconditioned += factor.unconditionedVariables()
+    unconditioned = list(set(unconditioned))
+
+    # get conditioned variables
+    conditioned = []
+    for factor in factors:
+        for var in factor.conditionedVariables():
+            if var not in unconditioned:
+                conditioned.append(var)
+    conditioned = list(set(conditioned))
+
+    # get variable domains
+    domain = {}
+    for factor in factors:
+        domain = dict(domain.items() + factor.variableDomainsDict().items())
+
+    # create factor and set probabilities
+    toReturn = Factor(unconditioned, conditioned, domain)
+    variables = set(conditioned + unconditioned)
+    for assignment in toReturn.getAllPossibleAssignmentDicts():
+        p = 1.0
+        for factor in factors:
+            var = list(set(factor.unconditionedVariables() \
+                | factor.conditionedVariables()) & variables)
+            varDict = {}
+            for v in var:
+                varDict[v] = assignment[v]
+            p *= factor.getProbability(varDict)
+        toReturn.setProbability(assignment, p)
+
+    return toReturn
 
 
 def eliminateWithCallTracking(callTrackingList=None):
@@ -150,7 +184,24 @@ def eliminateWithCallTracking(callTrackingList=None):
                     "unconditionedVariables: " + str(factor.unconditionedVariables()))
 
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+
+        # change the unconditioned variables and the variable domains
+        unconditioned = factor.unconditionedVariables()
+        unconditioned.remove(eliminationVariable)
+        conditioned = factor.conditionedVariables()
+        domain = factor.variableDomainsDict()
+        varDomain = domain.pop(eliminationVariable)
+
+        # create factor and set probabilities
+        toReturn = Factor(unconditioned, conditioned, domain)
+        for assignment in toReturn.getAllPossibleAssignmentDicts():
+            p = 0.0
+            for val in varDomain:
+                p += factor.getProbability(dict(assignment.items() \
+                    + [(eliminationVariable, val)]))
+            toReturn.setProbability(assignment, p)
+
+        return toReturn
 
     return eliminate
 
@@ -205,5 +256,33 @@ def normalize(factor):
                             str(factor))
 
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+
+    # get the variables and variable domains
+    unconditioned = list(factor.unconditionedVariables())
+    conditioned = list(factor.conditionedVariables())
+    domain = factor.variableDomainsDict()
+
+    # change the unconditioned variables with fixed value to conditioned
+    for var in list(unconditioned):
+        print unconditioned
+        if len(domain[var]) == 1:
+            unconditioned.remove(var)
+            conditioned.append(var)
+
+    # create factor and set probabilities
+    toReturn = Factor(unconditioned, conditioned, domain)
+    uncondFactor = Factor(unconditioned, [], domain)
+    condFactor = Factor([], conditioned, domain)
+    for condAssign in condFactor.getAllPossibleAssignmentDicts():
+        p = 0.0
+        for uncondAssign in uncondFactor.getAllPossibleAssignmentDicts():
+            assignment = dict(uncondAssign.items() + condAssign.items())
+            p += factor.getProbability(assignment)
+        if p == 0.0:
+            return None
+        for uncondAssign in uncondFactor.getAllPossibleAssignmentDicts():
+            assignment = dict(uncondAssign.items() + condAssign.items())
+            toReturn.setProbability(assignment, factor.getProbability(assignment) / p)
+
+    return toReturn
 
