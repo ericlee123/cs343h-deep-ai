@@ -264,7 +264,6 @@ def normalize(factor):
 
     # change the unconditioned variables with fixed value to conditioned
     for var in list(unconditioned):
-        print unconditioned
         if len(domain[var]) == 1:
             unconditioned.remove(var)
             conditioned.append(var)
