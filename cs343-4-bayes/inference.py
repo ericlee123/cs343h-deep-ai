@@ -132,7 +132,6 @@ def inferenceByVariableEliminationWithCallTracking(callTrackingList=None):
 
         "*** YOUR CODE HERE ***"
         currentFactorsList = bayesNet.getAllCPTsWithEvidence(evidenceDict)
-        print eliminationOrder
         for elimVar in eliminationOrder:
             currentFactorsList, joinedFactor = joinFactorsByVariable(currentFactorsList, elimVar)
             # print currentFactorsList
