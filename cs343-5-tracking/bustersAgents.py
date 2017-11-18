@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -163,4 +163,20 @@ class GreedyBustersAgent(BustersAgent):
             [beliefs for i, beliefs in enumerate(self.ghostBeliefs)
              if livingGhosts[i+1]]
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        nearestGhost = None
+        nearestDist = 10000000.0
+        for pd in livingGhostPositionDistributions:
+            prob = 0.0
+            probPos = -1
+            for pos in pd:
+                if pd[pos] > prob:
+                    prob = pd[pos]
+                    probPos = pos
+            dist = self.distancer.getDistance(pacmanPosition, probPos)
+            if dist < nearestDist:
+                nearestGhost = probPos
+                nearestDist = dist
+        for act in legal:
+            succ = Actions.getSuccessor(pacmanPosition, act)
+            if self.distancer.getDistance(succ, nearestGhost) < nearestDist:
+                return act
