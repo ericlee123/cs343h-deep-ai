@@ -250,6 +250,8 @@ class ParticleFilter(InferenceModule):
     def __init__(self, ghostAgent, numParticles=300):
         InferenceModule.__init__(self, ghostAgent);
         self.setNumParticles(numParticles)
+        self.particles = []
+        self.beliefs = util.Counter()
 
     def setNumParticles(self, numParticles):
         self.numParticles = numParticles
@@ -268,6 +270,10 @@ class ParticleFilter(InferenceModule):
         weight with each position) is incorrect and may produce errors.
         """
         "*** YOUR CODE HERE ***"
+        self.particles = []
+        for i in range(0, len(self.legalPositions)):
+            for j in range(0, self.numParticles / len(self.legalPositions)):
+                self.particles.append(self.legalPositions[i])
 
     def observe(self, observation, gameState):
         """
@@ -300,7 +306,24 @@ class ParticleFilter(InferenceModule):
         emissionModel = busters.getObservationDistribution(noisyDistance)
         pacmanPosition = gameState.getPacmanPosition()
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        self.beliefs = util.Counter()
+        if observation == None:
+            self.beliefs.clear()
+            self.beliefs[self.getJailPosition()] = 1
+        else:
+            partCount = util.Counter()
+            for p in self.particles:
+                dist = util.manhattanDistance(p, pacmanPosition)
+                partCount[p] += emissionModel[dist]
+            partCount.normalize()
+            self.beliefs = partCount
+
+        if self.beliefs.totalCount() == 0:
+            self.initializeUniformly(gameState)
+        else:
+            self.particles = []
+            for i in range(0, self.numParticles):
+                self.particles.append(util.sample(self.beliefs))
 
     def elapseTime(self, gameState):
         """
@@ -327,7 +350,11 @@ class ParticleFilter(InferenceModule):
         Counter object)
         """
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        freq = util.Counter()
+        for p in self.particles:
+            freq[p] += 1
+        freq.normalize()
+        return freq
 
 class MarginalInference(InferenceModule):
     """
