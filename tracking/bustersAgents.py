@@ -177,7 +177,7 @@ class GreedyBustersAgent(BustersAgent):
                 closestPos = probPos
 
         bestAction = None
-        minDist = 100000000000000000.0
+        minDist = float('inf')
         for l in legal:
             succ = Actions.getSuccessor(pacmanPosition, l)
             dist = self.distancer.getDistance(succ, closestPos)
