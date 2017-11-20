@@ -149,16 +149,6 @@ class ExactInference(InferenceModule):
         pacmanPosition = gameState.getPacmanPosition()
 
         "*** YOUR CODE HERE ***"
-        if noisyDistance is None:
-            for b in self.beliefs:
-                self.beliefs[b] = 0.0
-            self.beliefs[self.getJailPosition()] = 1.0
-        else:
-            for lp in self.legalPositions:
-                tru = util.manhattanDistance(lp, pacmanPosition)
-                self.beliefs[lp] *= emissionModel[tru]
-            self.beliefs.normalize()
-
         # Replace this code with a correct observation update
         # Be sure to handle the "jail" edge case where the ghost is eaten
         # and noisyDistance is None
@@ -168,10 +158,20 @@ class ExactInference(InferenceModule):
         #     if emissionModel[trueDistance] > 0:
         #         allPossible[p] = 1.0
 
+        allPossible = util.Counter()
+        if noisyDistance is None:
+            for b in self.beliefs:
+                allPossible[b] = 0.0
+            allPossible[self.getJailPosition()] = 1.0
+        else:
+            for lp in self.legalPositions:
+                tru = util.manhattanDistance(lp, pacmanPosition)
+                allPossible[lp] = self.beliefs[lp] * emissionModel[tru]
+
         "*** END YOUR CODE HERE ***"
 
-        # allPossible.normalize()
-        # self.beliefs = allPossible
+        allPossible.normalize()
+        self.beliefs = allPossible
 
     def elapseTime(self, gameState):
         """
@@ -229,7 +229,8 @@ class ExactInference(InferenceModule):
         "*** YOUR CODE HERE ***"
         overTime = util.Counter()
         for lp in self.legalPositions:
-            newPosDist = self.getPositionDistribution(self.setGhostPosition(gameState, lp))
+            newPosDist = self.getPositionDistribution(
+                self.setGhostPosition(gameState, lp))
             for pd in newPosDist:
                 overTime[pd] += self.beliefs[lp] * newPosDist[pd]
         overTime.normalize()
@@ -250,8 +251,6 @@ class ParticleFilter(InferenceModule):
     def __init__(self, ghostAgent, numParticles=300):
         InferenceModule.__init__(self, ghostAgent);
         self.setNumParticles(numParticles)
-        self.particles = []
-        self.beliefs = util.Counter()
 
     def setNumParticles(self, numParticles):
         self.numParticles = numParticles

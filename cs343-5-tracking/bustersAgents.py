@@ -164,7 +164,7 @@ class GreedyBustersAgent(BustersAgent):
              if livingGhosts[i+1]]
         "*** YOUR CODE HERE ***"
         nearestGhost = None
-        nearestDist = 10000000.0
+        nearestDist = float('inf')
         for pd in livingGhostPositionDistributions:
             prob = 0.0
             probPos = -1
