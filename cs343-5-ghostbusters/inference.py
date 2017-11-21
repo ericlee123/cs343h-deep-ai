@@ -305,17 +305,6 @@ class ParticleFilter(InferenceModule):
         "*** YOUR CODE HERE ***"
 
         if noisyDistance is not None:
-            # if self.getBeliefDistribution().totalCount == 0:
-            #     self.initializeUniformly(gameState)
-            # else:
-            #     newParticles = []
-            #     bellefs = util.Counter()
-            #     for p in self.particles:
-            #         dist = util.manhattanDistance(pacmanPosition, p)
-            #         bellefs[p] += emissionModel[dist]
-            #         # newParticles.append(util.sample(emissionModel[util.manhattanDistance(pacmanPosition, p)]))
-            #
-            #     self.particles = newParticles
             beliefs = self.getBeliefDistribution()
             allPossible = util.Counter()
             for lp in self.legalPositions:
@@ -509,7 +498,6 @@ class JointParticleFilter:
                 if i not in jailed:
                     prob *= emissionModels[i][util.manhattanDistance(particle[i], pacmanPosition)]
             bellefs[particle] += prob
-
 
         if bellefs.totalCount() == 0:
             self.initializeParticles()
