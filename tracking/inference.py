@@ -267,7 +267,10 @@ class ParticleFilter(InferenceModule):
         weight with each position) is incorrect and may produce errors.
         """
         "*** YOUR CODE HERE ***"
-
+        self.particles = []
+        for lp in self.legalPositions:
+            for i in range(self.numParticles / len(self.legalPositions)):
+                self.particles.append(lp)
 
 
     def observe(self, observation, gameState):
