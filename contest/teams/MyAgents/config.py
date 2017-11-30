@@ -39,7 +39,7 @@ Settings:
 TeamName = 'mAChIneLeArnINg'
 
 # Filename.FactoryClassName (CASE-sensitive)
-AgentFactory = 'agents.Agents'
+AgentFactory = 'agents.DeepAgentFactory'
 
 Partners = ['Eric Lee', 'Guneet Singh Dhillon']
 

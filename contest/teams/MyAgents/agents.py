@@ -20,21 +20,14 @@ from util import nearestPoint
 #############
 
 NUM_KEYBOARD_AGENTS = 0
-class Agents(AgentFactory):
+class DeepAgentFactory(AgentFactory):
   "Returns one keyboard agent and offensive reflex agents"
 
   def __init__(self, isRed):
     AgentFactory.__init__(self, isRed)
-    self.init = True
-    self.offense = 'offense'
-    self.defense = 'defense'
 
   def getAgent(self, index):
-    if self.init:
-        self.init = False
-        return self.choose(self.defense, index)
-    self.init = True
-    return self.choose(self.offense, index)
+    return self.choose('deep', index)
 
   def choose(self, agentStr, index):
     if agentStr == 'keys':
@@ -46,10 +39,8 @@ class Agents(AgentFactory):
         return keyboardAgents.KeyboardAgent2(index)
       else:
         raise Exception('Max of two keyboard agents supported')
-    elif agentStr == 'offense':
-      return OffensiveReflexAgent(index)
-    elif agentStr == 'defense':
-      return DefensiveReflexAgent(index)
+    elif agentStr == 'deep':
+      return DeepAgent(index)
     else:
       raise Exception("No staff agent identified by " + agentStr)
 
@@ -233,3 +224,21 @@ class DefensiveReflexAgent(ReflexCaptureAgent):
         'reverse'           : -2
         }
 
+class DeepAgent(ReflexCaptureAgent):
+
+  def getFeatures(self, gameState, action, myFood, opFood, myCapsule, opCapsule):
+    features = util.Counter()
+
+    # bias
+    features['bias'] = 1.0
+
+    # basic
+    numMyFood = len(myFood)
+    
+
+    return features
+
+  def getWeights(self, gameState, action):
+    return {
+      'score'                   : 100
+    }
