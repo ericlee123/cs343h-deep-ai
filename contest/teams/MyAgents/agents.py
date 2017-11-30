@@ -418,9 +418,36 @@ class DeepAgent(CaptureAgent):
         print self.weights
 
     def getFeatures(self, gameState, action):
-        self.features = util.Counter()
-        self.features['bias'] = 1.0
-        return self.features
+        features = util.Counter()
+
+        # first order features
+        ourFood = self.getFood(gameState).asList()
+        theirFood = self.getFoodYouAreDefending(gameState).asList()
+        OUR = self.getCapsules(gameState)
+        THEIR = self.getCapsulesYouAreDefending(gameState)
+        squad = [s for s in self.getTeam(gameState) if s != self.index]
+        them = self.getOpponents(gameState)
+        score = self.getScore(gameState)
+        succ = self.getSuccessor(gameState, action)
+        pos = succ.getAgentState(self.index).getPosition()
+        ourOff = len([oo for oo in self.getTeam(succ) if succ.getAgentState(oo).isPacman])
+        ourDef = len(self.getTeam(succ)) - ourOff
+        theirOff = len([to for to in self.getOpponents(succ) if succ.getAgentState(to).isPacman])
+        theirDef = len(self.getTeam(succ)) - theirOff
+        # our/their recently eaten (need persistent state)
+        squadPos = [succ.getAgentState(sp).getPosition() for sp in self.getTeam(gameState)]
+        # theirPos (need bayesian inference or particle filtering)
+
+        # second order features
+        distToHomie = self.getMazeDistance(pos, succ.getAgentState(squad[0]).getPosition())
+        ourOffRatio = len(theirFood) / ourOff
+        theirOffRatio = len(ourFood) / theirOff
+
+
+        # bias
+        features['bias'] = 1.0
+
+        return features
 
     def getSuccessor(self, state, action):
         """
