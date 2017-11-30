@@ -63,16 +63,7 @@ class ReflexCaptureAgent(CaptureAgent):
     # You can profile your evaluation time by uncommenting these lines
     # start = time.time()
 
-    # variables shared amongst the different positions
-    myFood = self.getFood(gameState).asList()
-    opFood = self.getFoodYouAreDefending(gameState).asList()
-    myCapsule = self.getCapsules(gameState)
-    opCapsule = self.getCapsulesYouAreDefending(gameState)
-    my = self.getTeam(gameState)
-    op = self.getOpponents(gameState)
-    score = self.getScore(gameState)
-
-    values = [self.evaluate(gameState, a, myFood, opFood, myCapsule, opCapsule) for a in actions]
+    values = [self.evaluate(gameState, a) for a in actions]
     # print 'eval time for agent %d: %.4f' % (self.index, time.time() - start)
 
     maxValue = max(values)
@@ -92,11 +83,11 @@ class ReflexCaptureAgent(CaptureAgent):
     else:
       return successor
 
-  def evaluate(self, gameState, action, myFood, opFood, myCapsule, opCapsule):
+  def evaluate(self, gameState, action):
     """
     Computes a linear combination of features and feature weights
     """
-    features = self.getFeatures(gameState, action, myFood, opFood, myCapsule, opCapsule)
+    features = self.getFeatures(gameState, action)
     weights = self.getWeights(gameState, action)
     return features * weights
 
@@ -257,30 +248,31 @@ class DAgent(ReflexCaptureAgent):
             (self.alpha * features[i] * (reward + (self.discount * (self.computeValueFromQValues(nextGameState))) - self.getQValue(gameState, action)))
     self.weights = weights
 
-  def getFeatures(self, gameState, action, myFood, opFood, myCapsule, opCapsule):
+  def getFeatures(self, gameState, action):
     features = util.Counter()
+
+    # first order features
+    ourFood = self.getFood(gameState).asList()
+    theirFood = self.getFoodYouAreDefending(gameState).asList()
+    OUR = self.getCapsules(gameState)
+    THEIR = self.getCapsulesYouAreDefending(gameState)
+    squad = [s for s in self.getTeam(gameState) if s != self.index]
+    them = self.getOpponents(gameState)
+    score = self.getScore(gameState)
+    succ = self.getSuccessor(gameState, action)
+    pos = succ.getAgentState(self.index).getPosition()
+    ourOff = len([oo for oo in self.getTeam(succ) if succ.getAgentState(oo).isPacman])
+    ourDef = len(self.getTeam(succ)) - ourOff
+    theirOff = len([to for to in self.getOpponents(succ) if succ.getAgentState(to).isPacman])
+    theirDef = len(self.getTeam(succ)) - theirOff
+    # our/their recently eaten (need persistent state)
+    squadPos = [succ.getAgentState(sp).getPosition() for sp in self.getTeam(gameState)]
+    # theirPos (need bayesian inference or particle filtering)
+
+    # second order features
 
     # bias
     features['bias'] = 1.0
-
-    succ = self.getSuccessor(gameState, action)
-    pos = succ.getAgentState(self.index).getPosition()
-    team = [t for t in self.getTeam(gameState) if t != self.index]
-    enemies = [succ.getAgentState(i) for i in self.getOpponents(succ)]
-    invaders = [a for a in enemies if a.isPacman]
-
-    # first order
-    numMyFood = len(myFood)
-    numOpFood = len(opFood)
-    opOff = len(invaders)
-    opDef = len(self.getOpponents(succ)) - opOff
-    distToTeam = self.getMazeDistance(pos, succ.getAgentState(team[0]).getPosition())
-    print distToTeam
-
-
-    # second order
-    # print dir(gameState)
-    # print gameState.getWalls().width
 
     return features
 
@@ -290,7 +282,8 @@ class DAgent(ReflexCaptureAgent):
   def updateWeights(self, reward, successor):
     diff = reward + (0.9 * self.V(successor)) - self.Q[successor]
     for k in self.features:
-        self.weights[k] += (0.1 * diff * self.features[k])
+        self.features[k] *= (0.1 * ())
+    self.weights = self.weights +
 
   def getSuccessor(self, gameState, action):
     successor = gameState.generateSuccessor(self.index, action)
