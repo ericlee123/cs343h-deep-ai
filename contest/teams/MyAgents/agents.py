@@ -14,6 +14,8 @@ from game import Directions
 import keyboardAgents
 import game
 from util import nearestPoint
+import copy
+import random,util,math
 
 #############
 # FACTORIES #
@@ -224,7 +226,36 @@ class DefensiveReflexAgent(ReflexCaptureAgent):
         'reverse'           : -2
         }
 
-class DeepAgent(ReflexCaptureAgent):
+class DAgent(ReflexCaptureAgent):
+
+  def __init__(self, index, timeForComputing=.1):
+    ReflexCaptureAgent.__init__(self, index, timeForComputing)
+    self.score = 0.0
+    self.Q = util.Counter()
+    self.alpha = 0.1
+    sef.discount = 0.9
+
+  def chooseAction(self, state):
+    """
+    Picks among the actions with the highest Q(s,a).
+    """
+    actions = gameState.getLegalActions(self.index)
+    values = [self.evaluate(state, a) for a in actions]
+    maxValue = max(values)
+    bestActions = [a for a, v in zip(actions, values) if v == maxValue]
+
+    return random.choice(bestActions)
+
+  def getQValue(self, gameState, action):
+    return self.getWeights(gameState, action) * self.getFeatures(gameState, action)
+
+  def update(self, gameState, action, nextGameState, reward):
+    weights = copy.deepcopy(self.getWeights(gameState, action))
+    features = self.getFeatures(gameState, action)
+    for i in features:
+        weights[i] += \
+            (self.alpha * features[i] * (reward + (self.discount * (self.computeValueFromQValues(nextGameState))) - self.getQValue(gameState, action)))
+    self.weights = weights
 
   def getFeatures(self, gameState, action, myFood, opFood, myCapsule, opCapsule):
     features = util.Counter()
@@ -254,16 +285,12 @@ class DeepAgent(ReflexCaptureAgent):
     return features
 
   def getWeights(self, gameState, action):
-
-    if not self.weights:
-        self.weights = util.Counter()
-
     return self.weights
 
-  def updateWeights(self, reward):
+  def updateWeights(self, reward, successor):
+    diff = reward + (0.9 * self.V(successor)) - self.Q[successor]
     for k in self.features:
-        self.features[k] *= (0.1 * ())
-    self.weights = self.weights + 
+        self.weights[k] += (0.1 * diff * self.features[k])
 
   def getSuccessor(self, gameState, action):
     successor = gameState.generateSuccessor(self.index, action)
@@ -274,14 +301,142 @@ class DeepAgent(ReflexCaptureAgent):
     else:
       toReturn = successor
 
-    if not self.score:
-        self.score = 0
-
-    curScore = self.getScore(toReturn)
-    if self.score != curScore:
-        self.updateWeights(curScore - self.score)
-        self.score = curScore
+    nextScore = self.getScore(toReturn)
+    if self.score != nextScore:
+        self.updateWeights(nextScore - self.score)
+        self.score = nextScore
 
     return toReturn
 
 
+
+
+
+
+
+
+
+
+
+class DeepAgent(CaptureAgent):
+    def __init__(self, index):
+        CaptureAgent.__init__(self, index)
+
+        # state -> action -> q-value
+        self.qValues = {}
+
+        self.discount = 0.9
+        self.alpha = 0.1
+        self.epsilon = 0.2
+        self.weights = util.Counter()
+        self.score = 0
+
+    def getQValue(self, state, action):
+        """
+          Should return Q(state,action) = w * featureVector
+          where * is the dotProduct operator
+        """
+        weights = self.getWeights()
+        features = self.getFeatures(state, action)
+        return weights * features
+
+    def computeValueFromQValues(self, state):
+        """
+          Returns max_action Q(state,action)
+          where the max is over legal actions.  Note that if
+          there are no legal actions, which is the case at the
+          terminal state, you should return a value of 0.0.
+        """
+        # compute maximum q-value
+        maximum = -float('inf')
+        for action in state.getLegalActions(self.index):
+            q = self.getQValue(state, action)
+            if maximum < q:
+                maximum = q
+        if maximum == -float('inf'):
+            return 0.0
+        return maximum
+
+    def computeActionFromQValues(self, state):
+        """
+          Compute the best action to take in a state.  Note that if there
+          are no legal actions, which is the case at the terminal state,
+          you should return None.
+        """
+        # compute action that gives maximum q-value
+        maximum = -float('inf')
+        maxAction = None
+        for action in state.getLegalActions(self.index):
+            q = self.getQValue(state, action)
+            if maximum < q:
+                maximum = q
+                maxAction = action
+        return maxAction
+
+    def chooseAction(self, state):
+        """
+          Compute the action to take in the current state.  With
+          probability self.epsilon, we should take a random action and
+          take the best policy action otherwise.  Note that if there are
+          no legal actions, which is the case at the terminal state, you
+          should choose None as the action.
+          HINT: You might want to use util.flipCoin(prob)
+          HINT: To pick randomly from a list, use random.choice(list)
+        """
+
+        # pick action - random or greedy
+        legalActions = state.getLegalActions(self.index)
+        if len(legalActions) == 0:
+            return None
+        if util.flipCoin(self.epsilon):
+            return random.choice(legalActions)
+        action = self.computeActionFromQValues(state)
+
+        successor = self.getSuccessor(state, action)
+
+        nextScore = self.getScore(successor)
+        if self.score != nextScore:
+            self.update(state, action, successor, nextScore - self.score)
+            self.score = nextScore
+
+        return action
+
+    def getValue(self, state):
+        return self.computeValueFromQValues(state)
+
+    def getWeights(self):
+        return self.weights
+
+    def update(self, state, action, nextState, reward):
+        """
+           Should update your weights based on transition
+        """
+
+        print 'update being called'
+        print self.weights
+
+        weights = copy.deepcopy(self.getWeights())
+        features = self.getFeatures(state, action)
+        for i in features:
+            weights[i] += \
+                (self.alpha * features[i] * (reward + (self.discount * (self.computeValueFromQValues(nextState))) - self.getQValue(state, action)))
+        self.weights = weights
+
+        print self.weights
+
+    def getFeatures(self, gameState, action):
+        self.features = util.Counter()
+        self.features['bias'] = 1.0
+        return self.features
+
+    def getSuccessor(self, state, action):
+        """
+        Finds the next successor which is a grid position (location tuple).
+        """
+        successor = state.generateSuccessor(self.index, action)
+        pos = successor.getAgentState(self.index).getPosition()
+        if pos != nearestPoint(pos):
+            # Only half a grid position was covered
+            return successor.generateSuccessor(self.index, action)
+        else:
+            return successor
