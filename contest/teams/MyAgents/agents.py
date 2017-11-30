@@ -86,9 +86,19 @@ class ReflexCaptureAgent(CaptureAgent):
     pos = successor.getAgentState(self.index).getPosition()
     if pos != nearestPoint(pos):
       # Only half a grid position was covered
-      return successor.generateSuccessor(self.index, action)
+      toReturn = successor.generateSuccessor(self.index, action)
     else:
-      return successor
+      toReturn = successor
+
+    if not self.score:
+        self.score = 0
+
+    curScore = self.getScore(toReturn)
+    if self.score != curScore:
+        self.updateWeights(curScore - self.score)
+        self.score = curScore
+
+    return toReturn
 
   def evaluate(self, gameState, action, myFood, opFood, myCapsule, opCapsule):
     """
@@ -239,6 +249,13 @@ class DeepAgent(ReflexCaptureAgent):
     return features
 
   def getWeights(self, gameState, action):
-    return {
-      'score'                   : 100
-    }
+
+    if not self.weights:
+        self.weights = util.Counter()
+
+    return self.weights
+
+  def updateWeights(self, reward):
+    for k in self.features:
+        self.features[k] *= (0.1 * ())
+    self.weights = self.weights + 
