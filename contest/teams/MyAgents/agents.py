@@ -217,100 +217,6 @@ class DefensiveReflexAgent(ReflexCaptureAgent):
         'reverse'           : -2
         }
 
-class DAgent(ReflexCaptureAgent):
-
-  def __init__(self, index, timeForComputing=.1):
-    ReflexCaptureAgent.__init__(self, index, timeForComputing)
-    self.score = 0.0
-    self.Q = util.Counter()
-    self.alpha = 0.1
-    sef.discount = 0.9
-
-  def chooseAction(self, state):
-    """
-    Picks among the actions with the highest Q(s,a).
-    """
-    actions = gameState.getLegalActions(self.index)
-    values = [self.evaluate(state, a) for a in actions]
-    maxValue = max(values)
-    bestActions = [a for a, v in zip(actions, values) if v == maxValue]
-
-    return random.choice(bestActions)
-
-  def getQValue(self, gameState, action):
-    return self.getWeights(gameState, action) * self.getFeatures(gameState, action)
-
-  def update(self, gameState, action, nextGameState, reward):
-    weights = copy.deepcopy(self.getWeights(gameState, action))
-    features = self.getFeatures(gameState, action)
-    for i in features:
-        weights[i] += \
-            (self.alpha * features[i] * (reward + (self.discount * (self.computeValueFromQValues(nextGameState))) - self.getQValue(gameState, action)))
-    self.weights = weights
-
-  def getFeatures(self, gameState, action):
-    features = util.Counter()
-
-    # first order features
-    ourFood = self.getFood(gameState).asList()
-    theirFood = self.getFoodYouAreDefending(gameState).asList()
-    OUR = self.getCapsules(gameState)
-    THEIR = self.getCapsulesYouAreDefending(gameState)
-    squad = [s for s in self.getTeam(gameState) if s != self.index]
-    them = self.getOpponents(gameState)
-    score = self.getScore(gameState)
-    succ = self.getSuccessor(gameState, action)
-    pos = succ.getAgentState(self.index).getPosition()
-    ourOff = len([oo for oo in self.getTeam(succ) if succ.getAgentState(oo).isPacman])
-    ourDef = len(self.getTeam(succ)) - ourOff
-    theirOff = len([to for to in self.getOpponents(succ) if succ.getAgentState(to).isPacman])
-    theirDef = len(self.getTeam(succ)) - theirOff
-    # our/their recently eaten (need persistent state)
-    squadPos = [succ.getAgentState(sp).getPosition() for sp in self.getTeam(gameState)]
-    # theirPos (need bayesian inference or particle filtering)
-
-    # second order features
-
-    # bias
-    features['bias'] = 1.0
-
-    return features
-
-  def getWeights(self, gameState, action):
-    return self.weights
-
-  def updateWeights(self, reward, successor):
-    diff = reward + (0.9 * self.V(successor)) - self.Q[successor]
-    for k in self.features:
-        self.features[k] *= (0.1 * ())
-    self.weights = self.weights +
-
-  def getSuccessor(self, gameState, action):
-    successor = gameState.generateSuccessor(self.index, action)
-    pos = successor.getAgentState(self.index).getPosition()
-    if pos != nearestPoint(pos):
-      # Only half a grid position was covered
-      toReturn = successor.generateSuccessor(self.index, action)
-    else:
-      toReturn = successor
-
-    nextScore = self.getScore(toReturn)
-    if self.score != nextScore:
-        self.updateWeights(nextScore - self.score)
-        self.score = nextScore
-
-    return toReturn
-
-
-
-
-
-
-
-
-
-
-
 class DeepAgent(CaptureAgent):
     def __init__(self, index):
         CaptureAgent.__init__(self, index)
@@ -440,9 +346,8 @@ class DeepAgent(CaptureAgent):
 
         # second order features
         distToHomie = self.getMazeDistance(pos, succ.getAgentState(squad[0]).getPosition())
-        ourOffRatio = len(theirFood) / ourOff
-        theirOffRatio = len(ourFood) / theirOff
-
+        ourOffRatio = len(theirFood) / (ourOff + 1)
+        theirOffRatio = len(ourFood) / (theirOff + 1)
 
         # bias
         features['bias'] = 1.0
