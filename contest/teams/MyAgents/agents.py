@@ -182,7 +182,16 @@ class DeepAgent(CaptureAgent):
         ourOffRatio = len(theirFood) / (ourOff + 1)
         theirOffRatio = len(ourFood) / (theirOff + 1)
 
-        # bias
+        features['ourFood'] = len(ourFood)
+        features['theirFood'] = len(theirFood)
+        features['score'] = score
+        features['ourOff'] = ourOff
+        features['ourDef'] = ourDef
+        features['theirOff'] = theirOff
+        features['theirDef'] = theirDef
+        features['distToHome'] = distToHomie
+        features['ourOffRatio'] = ourOffRatio
+        features['theirOffRatio'] = theirOffRatio
         features['bias'] = 1.0
 
         return features
