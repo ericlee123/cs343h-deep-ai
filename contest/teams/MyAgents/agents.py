@@ -232,9 +232,24 @@ class DeepAgent(ReflexCaptureAgent):
     # bias
     features['bias'] = 1.0
 
-    # basic
+    succ = self.getSuccessor(gameState, action)
+    pos = succ.getAgentState(self.index).getPosition()
+    team = [t for t in self.getTeam(gameState) if t != self.index]
+    enemies = [succ.getAgentState(i) for i in self.getOpponents(succ)]
+    invaders = [a for a in enemies if a.isPacman]
+
+    # first order
     numMyFood = len(myFood)
-    
+    numOpFood = len(opFood)
+    opOff = len(invaders)
+    opDef = len(self.getOpponents(succ)) - opOff
+    distToTeam = self.getMazeDistance(pos, succ.getAgentState(team[0]).getPosition())
+    print distToTeam
+
+
+    # second order
+    # print dir(gameState)
+    # print gameState.getWalls().width
 
     return features
 
