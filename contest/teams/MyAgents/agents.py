@@ -15,7 +15,19 @@ import keyboardAgents
 import game
 from util import nearestPoint
 import copy
-import random,util,math
+
+gWeights = util.Counter()
+gWeights['ourFood'] = 100.0
+gWeights['theirFood'] = -100.0
+gWeights['score'] = 100.0
+gWeights['ourOff'] = 100.0
+gWeights['ourDef'] = -100.0
+gWeights['theirOff'] = 0.0
+gWeights['theirDef'] = 0.0
+gWeights['distToHome'] = 10.0
+gWeights['ourOffRatio'] = 0.0
+gWeights['theirOffRatio'] = 0.0
+gWeights['bias'] = 10.0
 
 #############
 # FACTORIES #
@@ -27,6 +39,7 @@ class DeepAgentFactory(AgentFactory):
 
   def __init__(self, isRed):
     AgentFactory.__init__(self, isRed)
+    gWeights = util.Counter()
 
   def getAgent(self, index):
     return self.choose('deep', index)
@@ -57,10 +70,9 @@ class DeepAgent(CaptureAgent):
         # state -> action -> q-value
         self.qValues = {}
 
-        self.discount = 0.9
-        self.alpha = 0.1
-        self.epsilon = 0.2
-        self.weights = util.Counter()
+        self.discount = 0.5
+        self.alpha = 0.01
+        self.epsilon = 0.0
         self.score = 0
 
     def getQValue(self, state, action):
@@ -137,24 +149,26 @@ class DeepAgent(CaptureAgent):
         return self.computeValueFromQValues(state)
 
     def getWeights(self):
-        return self.weights
+        global gWeights
+        return gWeights
 
     def update(self, state, action, nextState, reward):
         """
            Should update your weights based on transition
         """
 
+        global gWeights
         print 'update being called'
-        print self.weights
+        print gWeights
 
         weights = copy.deepcopy(self.getWeights())
         features = self.getFeatures(state, action)
         for i in features:
             weights[i] += \
                 (self.alpha * features[i] * (reward + (self.discount * (self.computeValueFromQValues(nextState))) - self.getQValue(state, action)))
-        self.weights = weights
+        gWeights = weights
 
-        print self.weights
+        print gWeights
 
     def getFeatures(self, gameState, action):
         features = util.Counter()
