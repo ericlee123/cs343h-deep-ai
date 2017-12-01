@@ -145,10 +145,11 @@ class DeepAgent(ReflexCaptureAgent):
     freq.normalize()
     return freq
 
-  """
-  Only call this on enemy indices
-  """
+
   def getPosition(self, index, gameState):
+    """
+    Only call this on enemy indices.
+    """
     if gameState.getAgentState(index).getPosition() is not None:
       return gameState.getAgentState(index).getPosition()
     else:
@@ -158,12 +159,18 @@ class DeepAgent(ReflexCaptureAgent):
 
     succ = self.getSuccessor(gameState, action)
     myPos = succ.getAgentState(self.index).getPosition()
-    width = gameState.getWalls().width
-    height = gameState.getWalls().height
-    xBorder = gameState.getWalls().width / 2
-    squad = [s for s in self.getTeam(gameState) if s != self.index]
-    ourFood = self.getFoodYouAreDefending(gameState).asList()
+    width = succ.getWalls().width
+    height = succ.getWalls().height
+    xBorder = succ.getWalls().width / 2
+    squad = [s for s in self.getTeam(succ) if s != self.index]
+    ourFood = self.getFoodYouAreDefending(succ).asList()
+    OUR = self.getCapsulesYouAreDefending(succ)
+    ourOff = [oo for oo in self.getTeam(succ) if succ.getAgentState(oo).isPacman]
+    ourDef = [od for od in self.getTeam(succ) if not succ.getAgentState(od).isPacman]
+    theirFood = self.getFood(succ).asList()
+    THEIR = self.getCapsules(succ)
     theirOff = [to for to in self.getOpponents(succ) if succ.getAgentState(to).isPacman]
+    theirDef = [td for td in self.getOpponents(succ) if not succ.getAgentState(td).isPacman]
 
     self.updateSharedInfo(gameState, myPos)
 
@@ -174,48 +181,80 @@ class DeepAgent(ReflexCaptureAgent):
     # minDistToFood
     # minDistToCapsule
     # minDistToGhost
-    # scaredTime
-    # recentlyEaten
-    # theirDef
+    # scaredTime (TODO)
+    # recentlyEaten (TODO)
     # ourOff
+    # theirDef
     ## defense
     # len(ourFood)
-    # theirOff
     # ourDef
+    # theirOff
     # minDistToInvader
     # distToOurFoodBorderCenter
     ## general
     # minDistToHomie
     # score
-    # numAgents
     # stop
     # reverse
     # bias
     # ??? combine ourOffRatio and theirOffRatio ???
 
-    # defense
-    minDistToInvader = 0
-    if len(theirOff) != 0:
-      minDist = width
-      for to in theirOff:
-        dist = self.getMazeDistance(myPos, self.getPosition(to, gameState))
-        minDist = min(dist, minDist)
-      minDistToInvader = minDist
+    ## offense
+    numTheirFood = len(theirFood)
 
-    distToFoodBorderCenter = 0
-    foodCenter = [0, 0]
+    tfc = [0, 0]
+    for tf in theirFood:
+      tfc = list(sum(c) for c in zip(tfc, tf))
+    tfc = list(c / len(theirFood) for c in tfc)
+    if tfc not in DeepAgent.legalPositions:
+      for lp in DeepAgent.legalPositions:
+        if util.manhattanDistance(tfc, lp) == 1:
+          tfc = lp
+          break
+    distToTheirFoodCenter = self.getMazeDistance(myPos, tuple(tfc))
+
+    minDistToFood = width + height
+    for tf in theirFood:
+      minDistToFood = min(minDistToFood, self.getMazeDistance(myPos, tf))
+
+    minDistToCapsule = 0 if len(THEIR) == 0 else (width + height)
+    for tc in THEIR:
+      minDistToCapsule = min(minDistToCapsule, self.getMazeDistance(myPos, tc))
+
+    minDistToGhost = width + height
+    for td in theirDef:
+      minDistToGhost = min(minDistToGhost, self.getMazeDistance(myPos, self.getPosition(td, succ)))
+
+    numOurOff = len(ourOff)
+    numTheirDef = len(theirDef)
+
+    ## defense
+    numOurFood = len(ourFood)
+    numTheirOff = len(theirOff)
+    numOurDef = len(ourDef)
+
+    minDistToInvader = 0 if len(theirOff) == 0 else (width + height)
+    for to in theirOff:
+      minDistToInvader = min(minDistToInvader, self.getMazeDistance(myPos, self.getPosition(to, gameState)))
+
+    ofc = [0, 0]
     for of in ourFood:
-      foodCenter = list(sum(c) for c in zip(foodCenter, of))
-    foodCenter = list(c / len(ourFood) for c in foodCenter)
-    foodCenter[0] = (foodCenter[0] + xBorder) / 2
-    distToFoodBorderCenter = self.getMazeDistance(myPos, tuple(foodCenter))
+      ofc = list(sum(c) for c in zip(ofc, of))
+    ofc = list(c / len(ourFood) for c in ofc)
+    ofc[0] = (ofc[0] + xBorder) / 2
+    distToOurFoodBorderCenter = self.getMazeDistance(myPos, tuple(ofc))
 
+    ## general
     minDistToHomie = width + height
     for s in squad:
       dist = self.getMazeDistance(myPos, gameState.getAgentState(s).getPosition())
       minDistToHomie = min(dist, minDistToHomie)
 
-    # print yDispersionDiff
+    score = self.getScore(gameState)
+    stop = 1.0
+    reverse = 1.0
+    bias = 1.0
+
     # # first order features
     # ourFood = self.getFood(gameState).asList()
     # theirFood = self.getFoodYouAreDefending(gameState).asList()
@@ -240,22 +279,23 @@ class DeepAgent(ReflexCaptureAgent):
     # theirOffRatio = len(ourFood) / (theirOff + 1)
 
     features = util.Counter()
+    features['numTheirFood'] = numTheirFood
+    features['distToTheirFoodCenter'] = distToTheirFoodCenter
+    features['minDistToFood'] = minDistToFood
+    features['minDistToCapsule'] = minDistToCapsule
+    features['minDistToGhost'] = numTheirFood
+    features['ourOff'] = numTheirFood
+    features['theirDef'] = numTheirFood
+    features['numOurFood'] = numOurFood
+    features['ourDef'] = ourDef
+    features['theirOff'] = theirOff
     features['minDistToInvader'] = minDistToInvader
-    features['distToFoodBorderCenter'] = distToFoodBorderCenter
+    features['distToOurFoodBorderCenter'] = distToOurFoodBorderCenter
     features['minDistToHomie'] = minDistToHomie
-
-    # features['ourFood'] = len(ourFood)
-    # features['theirFood'] = len(theirFood)
-    # features['score'] = score
-    # features['ourOff'] = ourOff
-    # features['ourDef'] = ourDef
-    # features['theirOff'] = theirOff
-    # features['theirDef'] = theirDef
-    # features['distToHome'] = distToHomie
-    # features['ourOffRatio'] = ourOffRatio
-    # features['theirOffRatio'] = theirOffRatio
-
-    features['bias'] = 1.0
+    features['score'] = score
+    features['stop'] = stop
+    features['reverse'] = reverse
+    features['bias'] = bias
     return features
 
   def getWeights(self, gameState, action):
