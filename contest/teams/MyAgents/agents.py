@@ -58,16 +58,19 @@ class ReflexCaptureAgent(CaptureAgent):
     """
     actions = gameState.getLegalActions(self.index)
 
+    before = self.getFeatures(gameState)
+
     # You can profile your evaluation time by uncommenting these lines
     # start = time.time()
-
     values = [self.evaluate(gameState, a) for a in actions]
     # print 'eval time for agent %d: %.4f' % (self.index, time.time() - start)
 
     maxValue = max(values)
     bestActions = [a for a, v in zip(actions, values) if v == maxValue]
 
-    return random.choice(bestActions)
+    action = random.choice(bestActions)
+    after = self.getFeatures(self.getSuccessor(gameState, action))
+    return action
 
   def getSuccessor(self, gameState, action):
     """
@@ -85,7 +88,7 @@ class ReflexCaptureAgent(CaptureAgent):
     """
     Computes a linear combination of features and feature weights
     """
-    features = self.getFeatures(gameState, action)
+    features = self.getFeaturesAfterAction(gameState, action)
     weights = self.getWeights(gameState, action)
 
     return features * weights
@@ -155,9 +158,10 @@ class DeepAgent(ReflexCaptureAgent):
     else:
       return self.getBeliefDistribution(index).argMax()
 
-  def getFeatures(self, gameState, action):
+  def getFeaturesAfterAction(self, gameState, action):
+    return self.getFeatures(self.getSuccessor(gameState, action))
 
-    succ = self.getSuccessor(gameState, action)
+  def getFeatures(self, succ):
     myPos = succ.getAgentState(self.index).getPosition()
     width = succ.getWalls().width
     height = succ.getWalls().height
@@ -172,7 +176,7 @@ class DeepAgent(ReflexCaptureAgent):
     theirOff = [to for to in self.getOpponents(succ) if succ.getAgentState(to).isPacman]
     theirDef = [td for td in self.getOpponents(succ) if not succ.getAgentState(td).isPacman]
 
-    self.updateSharedInfo(gameState, myPos)
+    self.updateSharedInfo(succ, myPos)
 
     ### features
     ## offense
@@ -235,7 +239,7 @@ class DeepAgent(ReflexCaptureAgent):
 
     minDistToInvader = 0 if len(theirOff) == 0 else (width + height)
     for to in theirOff:
-      minDistToInvader = min(minDistToInvader, self.getMazeDistance(myPos, self.getPosition(to, gameState)))
+      minDistToInvader = min(minDistToInvader, self.getMazeDistance(myPos, self.getPosition(to, succ)))
 
     ofc = [0, 0]
     for of in ourFood:
@@ -247,10 +251,10 @@ class DeepAgent(ReflexCaptureAgent):
     ## general
     minDistToHomie = width + height
     for s in squad:
-      dist = self.getMazeDistance(myPos, gameState.getAgentState(s).getPosition())
+      dist = self.getMazeDistance(myPos, succ.getAgentState(s).getPosition())
       minDistToHomie = min(dist, minDistToHomie)
 
-    score = self.getScore(gameState)
+    score = self.getScore(succ)
     stop = 1.0
     reverse = 1.0
     bias = 1.0
