@@ -291,8 +291,8 @@ class DeepAgent(ReflexCaptureAgent):
     features['ourOff'] = numTheirFood
     features['theirDef'] = numTheirFood
     features['numOurFood'] = numOurFood
-    features['ourDef'] = ourDef
-    features['theirOff'] = theirOff
+    features['numOurDef'] = numOurDef
+    features['numTheirOff'] = numTheirOff
     features['minDistToInvader'] = minDistToInvader
     features['distToOurFoodBorderCenter'] = distToOurFoodBorderCenter
     features['minDistToHomie'] = minDistToHomie
