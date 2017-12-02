@@ -59,8 +59,6 @@ class ReflexCaptureAgent(CaptureAgent):
         """
         actions = gameState.getLegalActions(self.index)
 
-        before = self.getFeatures(gameState)
-
         # You can profile your evaluation time by uncommenting these lines
         # start = time.time()
         values = [self.evaluate(gameState, a) for a in actions]
@@ -70,7 +68,6 @@ class ReflexCaptureAgent(CaptureAgent):
         bestActions = [a for a, v in zip(actions, values) if v == maxValue]
 
         action = random.choice(bestActions)
-        after = self.getFeatures(self.getSuccessor(gameState, action))
         return action
 
     def getSuccessor(self, gameState, action):
@@ -89,7 +86,7 @@ class ReflexCaptureAgent(CaptureAgent):
         """
         Computes a linear combination of features and feature weights
         """
-        features = self.getFeaturesAfterAction(gameState, action)
+        features = self.getFeatures(gameState, action)
         weights = self.getWeights(gameState, action)
 
         return features * weights
@@ -146,10 +143,9 @@ class DeepAgent(ReflexCaptureAgent):
         else:
             return DeepAgent.inferences[index].argMax()
 
-    def getFeaturesAfterAction(self, gameState, action):
-        return self.getFeatures(self.getSuccessor(gameState, action))
+    def getFeatures(self, gameState, action):
+        succ = self.getSuccessor(gameState, action)
 
-    def getFeatures(self, succ):
         myPos = succ.getAgentState(self.index).getPosition()
         width = succ.getWalls().width
         height = succ.getWalls().height
@@ -159,12 +155,12 @@ class DeepAgent(ReflexCaptureAgent):
         OUR = self.getCapsulesYouAreDefending(succ)
         ourOff = [oo for oo in self.getTeam(succ) if succ.getAgentState(oo).isPacman]
         ourDef = [od for od in self.getTeam(succ) if not succ.getAgentState(od).isPacman]
-        theirFood = self.getFood(succ).asList()
+        theirFood = self.getFood(gameState).asList()
         THEIR = self.getCapsules(succ)
         theirOff = [to for to in self.getOpponents(succ) if succ.getAgentState(to).isPacman]
         theirDef = [td for td in self.getOpponents(succ) if not succ.getAgentState(td).isPacman]
 
-        self.doInference(succ, myPos)
+        self.doInference(gameState, myPos)
 
         ### features
         ## offense
@@ -211,6 +207,7 @@ class DeepAgent(ReflexCaptureAgent):
         minDistToFood = width + height
         for tf in theirFood:
           minDistToFood = min(minDistToFood, self.getMazeDistance(myPos, tf))
+        # print len(theirFood)
 
         minDistToCapsule = 0 if len(THEIR) == 0 else (width + height)
         for tc in THEIR:
@@ -301,17 +298,17 @@ class DeepAgent(ReflexCaptureAgent):
     def getWeights(self, gameState, action):
         return {
         # offense
-            'numTheirFood'              : -20,
+            # 'numTheirFood'              : -20,
             # 'distToTheirFoodCenter'     : -5,
-            'minDistToFood'             : -100,
-            'minDistToGhost'            : 10,
+            # 'minDistToFood'             : -100,
+            # 'minDistToGhost'            : 10,
             # 'numOurOff'                 : 10,
             # 'numTheirDef'               : -10,
-        # # defense
-        #     'numOurFood'                : 10,
-        #     'numTheirOff'               : -10,
-        #     'numOurDef'                 : 10,
-        #     'minDistToInvader'          : -100,
-        #     'distToOurFoodBorderCenter' : -10,
-        #     'minDistToHomie'            : 60
+        # defense
+            'numOurFood'                : 10,
+            'numTheirOff'               : -10,
+            'numOurDef'                 : 10,
+            'minDistToInvader'          : -100,
+            'distToOurFoodBorderCenter' : -10,
+            'minDistToHomie'            : 60
         }
