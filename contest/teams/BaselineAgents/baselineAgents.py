@@ -23,7 +23,7 @@ NUM_KEYBOARD_AGENTS = 0
 class BaselineAgents(AgentFactory):
   "Returns one keyboard agent and offensive reflex agents"
 
-  def __init__(self, isRed, first='offense', second='defense', rest='offense'):
+  def __init__(self, isRed, first='offense', second='offense', rest='offense'):
     AgentFactory.__init__(self, isRed)
     self.agents = [first, second]
     self.rest = rest
@@ -190,4 +190,4 @@ class DefensiveReflexAgent(ReflexCaptureAgent):
     return features
 
   def getWeights(self, gameState, action):
-    return {'numInvaders': -1000, 'onDefense': 100, 'invaderDistance': -10, 'stop': -100, 'reverse': -2}
+    return {'numInvaders': -1000, 'onDefense': -100, 'invaderDistance': -10, 'stop': -100, 'reverse': -2}

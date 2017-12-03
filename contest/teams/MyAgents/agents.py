@@ -283,12 +283,12 @@ class DeepAgent(ReflexCaptureAgent):
 
         features = util.Counter()
         # offense (scale by offense defense ratio)
-        features['numTheirFood'] = numTheirFood
-        features['distToTheirFoodCenter'] = distToTheirFoodCenter
-        features['minDistToFood'] = minDistToFood
-        features['minDistToGhost'] = minDistToGhost
-        features['numOurOff'] = numOurOff
-        features['numTheirDef'] = numTheirDef
+        # features['numTheirFood'] = numTheirFood
+        # features['distToTheirFoodCenter'] = distToTheirFoodCenter
+        # features['minDistToFood'] = minDistToFood
+        # features['minDistToGhost'] = minDistToGhost
+        # features['numOurOff'] = numOurOff
+        # features['numTheirDef'] = numTheirDef
         # defense
         features['numOurFood'] = numOurFood
         features['numTheirOff'] = numTheirOff
@@ -300,18 +300,18 @@ class DeepAgent(ReflexCaptureAgent):
 
     def getWeights(self, gameState, action):
         return {
-        # offense
-            'numTheirFood'              : -20,
-            # 'distToTheirFoodCenter'     : -5,
-            'minDistToFood'             : -100,
-            'minDistToGhost'            : 10,
-            # 'numOurOff'                 : 10,
-            # 'numTheirDef'               : -10,
-        # # defense
-        #     'numOurFood'                : 10,
-        #     'numTheirOff'               : -10,
-        #     'numOurDef'                 : 10,
-        #     'minDistToInvader'          : -100,
-        #     'distToOurFoodBorderCenter' : -10,
-        #     'minDistToHomie'            : 60
+        # # offense
+        #     'numTheirFood'              : -20,
+        #     'distToTheirFoodCenter'     : -5,
+        #     'minDistToFood'             : -100,
+        #     'minDistToGhost'            : 10,
+        #     'numOurOff'                 : 10,
+        #     'numTheirDef'               : -10,
+        # defense
+            'numOurFood'                : 10,
+            'numTheirOff'               : -10,
+            'numOurDef'                 : 10,
+            'minDistToInvader'          : -100,
+            'distToOurFoodBorderCenter' : -10,
+            'minDistToHomie'            : 60
         }
