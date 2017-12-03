@@ -143,7 +143,7 @@ class DeepAgent(ReflexCaptureAgent):
             else:
                 DeepAgent.inferences[opp] = self.getUniformDistribution()
 
-            # self.displayDistributionsOverPositions([DeepAgent.inferences[0]])
+            self.displayDistributionsOverPositions(DeepAgent.inferences.values())
 
     def getUniformDistribution(self):
         uniform = util.Counter()
@@ -164,11 +164,11 @@ class DeepAgent(ReflexCaptureAgent):
         succ = self.getSuccessor(gameState, action)
 
         myPos = succ.getAgentState(self.index).getPosition()
-        homiePos = succ.getAgentState(self.index).getPosition()
         width = succ.getWalls().width
         height = succ.getWalls().height
         xBorder = width / 2
         squad = [s for s in self.getTeam(succ) if s != self.index]
+        homiePos = succ.getAgentState(squad[0]).getPosition()
         ourFood = self.getFoodYouAreDefending(succ).asList()
         OUR = self.getCapsulesYouAreDefending(succ)
         ourOff = [oo for oo in self.getTeam(succ) if succ.getAgentState(oo).isPacman]
@@ -249,22 +249,28 @@ class DeepAgent(ReflexCaptureAgent):
                 eat = 1
                 DeepAgent.inferences[to] = self.getUniformDistribution()
 
-        minDistToInvader = 0 if len(theirOff) == 0 else (width * height)
-        distances = {}
-        for to in theirOff:
-            distances[to] = self.getMazeDistance(myPos, self.getPosition(to, succ))
-        if len(theirOff) > 0:
-            minDistToInvader = distances[min(distances, key=distances.get)]
-        if len(theirOff) == 2:
-            homieDist = self.getMazeDistance(homiePos, self.getPosition(min(distances, key=distances.get), succ))
-            if homieDist < distances[min(distances, key=distances.get)]:
-                minDistToInvader = distances[max(distances, key=distances.get)]
+        minDistToInvader = 0
+        if len(theirOff) != 0:
+            distances = {}
+            for to in theirOff:
+                distances[to] = self.getMazeDistance(myPos, self.getPosition(to, succ))
+            minDistToInvader = min(distances.values())
+
+            # if the other ghost is closer and there is another threat, follow the other
+            if len(ourDef) == 2:
+                homieMinDist = self.getMazeDistance(homiePos, self.getPosition(min(distances, key=distances.get), succ))
+                if homieMinDist < minDistToInvader:
+                    if len(theirOff) == 2:
+                        minDistToInvader = max(distances.values())
+                    else:
+                        minDistToInvader = 0
+
         if gameState.getAgentState(self.index).scaredTimer > 0:
-            minDistToInvader = -minDistToInvader
+            minDistToInvader = abs(5 - minDistToInvader)
 
         ofc = [0, 0]
         for of in ourFood:
-          ofc = list(sum(c) for c in zip(ofc, of))
+            ofc = list(sum(c) for c in zip(ofc, of))
         ofc = list(c / len(ourFood) for c in ofc)
         ofc[0] = (2*ofc[0] + xBorder) / 3
         minDist = width + height
@@ -280,8 +286,8 @@ class DeepAgent(ReflexCaptureAgent):
         ## general
         minDistToHomie = width + height
         for s in squad:
-          dist = self.getMazeDistance(myPos, succ.getAgentState(s).getPosition())
-          minDistToHomie = min(dist, minDistToHomie)
+            dist = self.getMazeDistance(myPos, succ.getAgentState(s).getPosition())
+            minDistToHomie = min(dist, minDistToHomie)
 
         # score = self.getScore(succ)
         # stop = 1.0
@@ -324,7 +330,7 @@ class DeepAgent(ReflexCaptureAgent):
         features['numTheirOff'] = numTheirOff
         features['numOurDef'] = numOurDef
         features['minDistToInvader'] = minDistToInvader
-        features['distToOurFoodBorderCenter'] = 0 if numTheirOff else distToOurFoodBorderCenter
+        features['distToOurFoodBorderCenter'] = 0 if numTheirOff != 0 else distToOurFoodBorderCenter
         features['minDistToHomie'] = math.sqrt(minDistToHomie)
         features['eat'] = eat
         return features
