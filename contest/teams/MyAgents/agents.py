@@ -143,8 +143,6 @@ class DeepAgent(ReflexCaptureAgent):
             else:
                 DeepAgent.inferences[opp] = self.getUniformDistribution()
 
-            self.displayDistributionsOverPositions(DeepAgent.inferences.values())
-
     def getUniformDistribution(self):
         uniform = util.Counter()
         for lp in DeepAgent.legalPositions:
@@ -220,8 +218,9 @@ class DeepAgent(ReflexCaptureAgent):
 
         minDistToGhost = 0 if len(theirDef) == 0 else (width * height)
         for td in theirDef:
-            if gameState.getAgentState(td).scaredTimer == 0:
-                minDistToGhost = min(minDistToGhost, self.getMazeDistance(myPos, self.getPosition(td, succ)))
+            minDistToGhost = min(minDistToGhost, self.getMazeDistance(myPos, self.getPosition(td, succ)))
+            if gameState.getAgentState(td).scaredTimer != 0:
+                minDistToGhost /= (-3.0)
 
         tfc = [0, 0]
         for tf in theirFood:
@@ -273,7 +272,7 @@ class DeepAgent(ReflexCaptureAgent):
         # offense
             'numTheirFood'              : -20,
             'minDistToCloserFood'       : -100,
-            'minDistToCapsule'          : -110,
+            'minDistToCapsule'          : -50,
             'minDistToGhost'            : 40,
             'minDistToHomie'            : 50,
             'distToTheirFoodCenter'     : -20,
