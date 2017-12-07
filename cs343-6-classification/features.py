@@ -34,9 +34,6 @@ def basicFeatureExtractor(datum):
     features[datum > 0] = 1
     return features.flatten()
 
-grid = None
-visited = None
-
 def enhancedFeatureExtractor(datum):
     """
     Returns a feature vector of the image datum.
@@ -49,43 +46,55 @@ def enhancedFeatureExtractor(datum):
             can have any length.
 
     ## DESCRIBE YOUR ENHANCED FEATURES HERE...
-
+        Calculate the number of connected regions. Add a 3 dimensional vector to
+        the feature vector, with the value of the ith entry equal to 1 iff there
+        are i connected regions in the image.
     ##
     """
     features = basicFeatureExtractor(datum)
 
     "*** YOUR CODE HERE ***"
-    global visited
-    global grid
     arr = features.tolist()
-    grid = datum
-    visited = np.zeros_like(datum, dtype=int)
+    num_connected_regions = get_connected_regions(datum)
+    for i in range(3):
+        if i != num_connected_regions:
+            arr.append(0)
+        else:
+            arr.append(1)
 
-    segs = 0
-
-    for r in range(len(datum)):
-        for c in range(len(datum[r])):
-            if flood(r, c) > 1:
-                segs += 1
-
-    arr.append(segs)
     return np.array(arr)
 
-def flood(r, c):
-    if r not in range(len(grid)) or c not in range(len(grid[r])):
-        return 1
+def get_connected_regions(datum):
+    visited = set()
+    num_connected_regions = 0
+    for x in range(DIGIT_DATUM_WIDTH):
+        for y in range(DIGIT_DATUM_HEIGHT):
+            if datum[x, y] > 0 or (x, y) in visited:
+                continue
+            bfs(datum, (x, y), visited)
+            num_connected_regions += 1
+    return num_connected_regions
 
-    if visited[r][c]:
-        return 0
-    else:
-        visited[r][c] = 1
-
-    if r not in range(len(grid)) or c not in range(len(grid[r])):
-        return 1
-    elif grid[r][c] == 0:
-        return 1
-    else:
-        return flood(r-1, c) + flood(r, c-1) + flood(r+1, c) + flood(r, c+1)
+def bfs(datum, start, visited):
+    queue = [start]
+    while len(queue) != 0:
+        node = queue.pop(0)
+        if node in visited:
+            continue
+        visited.add(node)
+        node_x = node[0]
+        node_y = node[1]
+        dx = [-1, 0, 1]
+        dy = [-1, 0, 1]
+        for x in dx:
+            for y in dy:
+                if node_x + x < 0 or node_x + x >= DIGIT_DATUM_WIDTH:
+                    continue
+                if node_y + y < 0 or node_y + y >= DIGIT_DATUM_HEIGHT:
+                    continue
+                if datum[node_x + x, node_y + y] > 0:
+                    continue
+                queue.append((node_x + x, node_y + y))
 
 def analysis(model, trainData, trainLabels, trainPredictions, valData, valLabels, validationPredictions):
     """
