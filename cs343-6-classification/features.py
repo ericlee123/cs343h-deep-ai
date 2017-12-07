@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -34,6 +34,9 @@ def basicFeatureExtractor(datum):
     features[datum > 0] = 1
     return features.flatten()
 
+grid = None
+visited = None
+
 def enhancedFeatureExtractor(datum):
     """
     Returns a feature vector of the image datum.
@@ -52,10 +55,37 @@ def enhancedFeatureExtractor(datum):
     features = basicFeatureExtractor(datum)
 
     "*** YOUR CODE HERE ***"
-    util.raiseNotDefined()
+    global visited
+    global grid
+    arr = features.tolist()
+    grid = datum
+    visited = np.zeros_like(datum, dtype=int)
 
-    return features
+    segs = 0
 
+    for r in range(len(datum)):
+        for c in range(len(datum[r])):
+            if flood(r, c) > 1:
+                segs += 1
+
+    arr.append(segs)
+    return np.array(arr)
+
+def flood(r, c):
+    if r not in range(len(grid)) or c not in range(len(grid[r])):
+        return 1
+
+    if visited[r][c]:
+        return 0
+    else:
+        visited[r][c] = 1
+
+    if r not in range(len(grid)) or c not in range(len(grid[r])):
+        return 1
+    elif grid[r][c] == 0:
+        return 1
+    else:
+        return flood(r-1, c) + flood(r, c-1) + flood(r+1, c) + flood(r, c+1)
 
 def analysis(model, trainData, trainLabels, trainPredictions, valData, valLabels, validationPredictions):
     """

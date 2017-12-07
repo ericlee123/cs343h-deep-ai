@@ -4,7 +4,7 @@
 # educational purposes provided that (1) you do not distribute or publish
 # solutions, (2) you retain this notice, and (3) you provide clear
 # attribution to UC Berkeley, including a link to http://ai.berkeley.edu.
-# 
+#
 # Attribution Information: The Pacman AI projects were developed at UC Berkeley.
 # The core projects and autograders were primarily created by John DeNero
 # (denero@cs.berkeley.edu) and Dan Klein (klein@cs.berkeley.edu).
@@ -61,8 +61,15 @@ def search_hyperparams(train_data, train_labels, val_data, val_labels,
         models.append(model)
 
     val_accuracies = []
+    acc = 0.0
     # Loop over hyperparams
     for model, (learning_rate, momentum, batch_size) in zip(models, hyperparams):
         "*** YOUR CODE HERE ***"
-        util.raiseNotDefined()
+        solver = solvers.MinibatchStochasticGradientDescentSolver(learning_rate, iterations, batch_size, momentum)
+        solver.solve(train_data, train_labels, val_data, val_labels, model)
+        temp = model.accuracy(val_data, val_labels)
+        if temp > acc:
+            acc = temp
+            best_model = model
+            best_hyperparams = (learning_rate, momentum, batch_size)
     return best_model, best_hyperparams
